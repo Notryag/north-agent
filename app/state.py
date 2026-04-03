@@ -1,7 +1,12 @@
+from typing import NotRequired
+
 from langchain.agents import AgentState
 
 
 class ThreadState(AgentState):
-    """Minimal thread state that relies on AgentState.messages."""
+    """Compact shared state for the lite runtime."""
 
-    pass
+    title: NotRequired[str | None]
+    artifacts: NotRequired[list[str]]
+    thread_data: NotRequired[dict | None]
+    uploaded_files: NotRequired[list[dict] | None]

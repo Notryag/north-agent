@@ -1,8 +1,10 @@
 """Application package for the DeerFlow-lite demo."""
 
 from .agent import build_agent
+from .checkpointer import get_default_checkpointer
 from .client import AppClient, StreamEvent
 from .config import AppConfig, load_environment
+from .runtime import get_checkpointer, get_middlewares, get_state_schema, get_tools
 from .state import ThreadState
 
 __all__ = [
@@ -11,5 +13,10 @@ __all__ = [
     "StreamEvent",
     "ThreadState",
     "build_agent",
+    "get_checkpointer",
+    "get_default_checkpointer",
+    "get_middlewares",
+    "get_state_schema",
+    "get_tools",
     "load_environment",
 ]

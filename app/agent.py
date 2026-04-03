@@ -1,13 +1,15 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
-
 from langchain.agents import create_agent
-from langchain.agents.middleware import AgentMiddleware
 from langchain.chat_models import init_chat_model
 
 from .config import AppConfig
-from .state import ThreadState
+from .runtime import (
+    get_checkpointer as resolve_checkpointer,
+    get_middlewares as resolve_middlewares,
+    get_state_schema,
+    get_tools as resolve_tools,
+)
 
 
 def create_chat_model(name: str, thinking_enabled: bool = False):
@@ -20,22 +22,11 @@ def create_chat_model(name: str, thinking_enabled: bool = False):
     _ = thinking_enabled
     return init_chat_model(**kwargs)
 
-
-def get_tools() -> list:
-    """Return the default tool set for the minimal runtime."""
-    return []
-
-
-def get_middlewares() -> Sequence[AgentMiddleware]:
-    """Return the default middleware chain for the minimal runtime."""
-    return []
-
-
 def build_agent(
     config: AppConfig,
     *,
     tools: list | None = None,
-    middlewares: Sequence[AgentMiddleware] | None = None,
+    middlewares=None,
     checkpointer=None,
 ):
     model = create_chat_model(
@@ -45,9 +36,9 @@ def build_agent(
 
     return create_agent(
         model=model,
-        tools=tools if tools is not None else get_tools(),
-        middleware=middlewares if middlewares is not None else get_middlewares(),
+        tools=tools if tools is not None else resolve_tools(config),
+        middleware=middlewares if middlewares is not None else resolve_middlewares(config),
         system_prompt=config.system_prompt,
-        state_schema=ThreadState,
-        checkpointer=checkpointer,
+        state_schema=get_state_schema(),
+        checkpointer=checkpointer if checkpointer is not None else resolve_checkpointer(config),
     )

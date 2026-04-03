@@ -60,32 +60,41 @@ class AppClient:
         config = self._get_runnable_config(thread_id)
         state = {"messages": [HumanMessage(content=message)]}
         seen_ids: set[str] = set()
+        context = {"thread_id": thread_id}
 
-        for chunk in agent.stream(state, config=config, stream_mode="values"):
-            messages = chunk.get("messages", [])
-            print("Chunk messages:", messages)  # Debug print to inspect the chunk structure
-            for msg in messages:
-                if not isinstance(msg, AIMessage):
-                    continue
+        try:
+            for chunk in agent.stream(state, config=config, context=context, stream_mode="values"):
+                messages = chunk.get("messages", [])
+                for msg in messages:
+                    if not isinstance(msg, AIMessage):
+                        continue
 
-                msg_id = getattr(msg, "id", None)
-                if msg_id and msg_id in seen_ids:
-                    continue
-                if msg_id:
-                    seen_ids.add(msg_id)
+                    msg_id = getattr(msg, "id", None)
+                    if msg_id and msg_id in seen_ids:
+                        continue
+                    if msg_id:
+                        seen_ids.add(msg_id)
 
-                text = self._extract_text(msg.content)
-                if text:
-                    yield StreamEvent(
-                        type="message",
-                        data={"role": "ai", "content": text},
-                    )
+                    text = self._extract_text(msg.content)
+                    if text:
+                        yield StreamEvent(
+                            type="ai",
+                            data={"role": "ai", "content": text, "thread_id": thread_id},
+                        )
 
-            yield StreamEvent(type="values", data=chunk)
+                yield StreamEvent(type="values", data={"thread_id": thread_id, "chunk": chunk})
+        except Exception as exc:
+            yield StreamEvent(
+                type="error",
+                data={"thread_id": thread_id, "message": str(exc), "error_type": type(exc).__name__},
+            )
+            raise
+
+        yield StreamEvent(type="end", data={"thread_id": thread_id})
 
     def chat(self, message: str, *, thread_id: str | None = None) -> str:
         last_text = ""
         for event in self.stream(message, thread_id=thread_id):
-            if event.type == "message":
+            if event.type == "ai":
                 last_text = event.data["content"]
         return last_text

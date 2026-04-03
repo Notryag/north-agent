@@ -22,7 +22,7 @@ def main() -> int:
 
     if args.stream:
         for event in client.stream(args.message, thread_id=args.thread_id):
-            if event.type == "message":
+            if event.type == "ai":
                 print(event.data["content"])
         return 0
 
