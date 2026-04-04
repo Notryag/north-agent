@@ -1,26 +1,22 @@
 # DeerFlow Lite
 
-这是一个已经落地的最小版 DeerFlow demo。
+这是一个正在演进中的简化版 DeerFlow runtime。
 
-当前目标不是复刻完整 DeerFlow，而是保留最核心的骨架，让项目先跑起来：
+需要特别说明两点：
 
-- 环境变量驱动配置
-- 最小 `AgentState`
-- 统一的 agent factory
-- 对外 `chat()` / `stream()` client
-- 一个可直接执行的 CLI 入口
+1. **最终目标不变**
+   项目最终仍然是朝 DeerFlow 的核心方向推进，而不是做一个独立的调研系统。
+2. **当前阶段有一个收敛任务**
+   当前阶段优先围绕 `Web 调研 -> Markdown 报告 -> artifact 输出` 这个任务闭环推进，用它来逼出 DeerFlow 最关键的 runtime 能力。
 
-还没有实现的部分保留为后续扩展：
+也就是说：
 
-- tools
-- middleware
-- checkpointer
-- 自定义 state 字段
-- subagent
+- DeerFlow 是总体方向
+- Web 调研只是当前阶段的推进节点，不是分叉
 
 ## 当前实现
 
-项目现在已经不是设计草案，而是一个可以直接运行的最小应用。
+项目已经不是纯设计草案，而是一个可运行的 lite runtime 骨架。
 
 核心结构：
 
@@ -68,13 +64,11 @@ user
   -> final answer
 ```
 
-这个版本默认：
+当前版本的重点不是“功能已经完整”，而是：
 
-- `tools=[]`
-- `middleware=[]`
-- `state` 只依赖 `messages`
-
-所以复杂度很低，但外部使用方式已经固定下来，后面继续加功能时不需要推翻接口。
+- 对外接口已经稳定
+- runtime 组装点已经形成
+- 后续可以围绕阶段任务持续补能力，而不需要推翻架构
 
 ## 配置方式
 
@@ -155,46 +149,50 @@ print(response)
 当前已经有：
 
 - 基于 `.env` 的配置加载
-- 最小 `ThreadState`
-- `build_agent()` 统一装配
+- 统一的 `build_agent()` 装配点
 - `AppClient.chat()`
 - `AppClient.stream()`
+- `runtime.py` 统一解析 tools / middlewares / checkpointer
+- 最小 `ThreadState`
+- 基础 checkpointer 接口
+- 最小工具注册与 middleware 骨架
+- 线程路径模型
 - CLI 入口
-- 基础 smoke tests
+- 基础测试
 
-## 尚未实现的能力
+## 当前阶段真正缺少的能力
 
-当前还没有做：
+如果把当前阶段任务定义为“Web 调研 -> Markdown 报告 -> artifact 输出”，现在最缺的不是更多抽象，而是这些闭环能力：
 
-- checkpointer 持久化
-- tools 注入和示例工具
-- middleware 链
-- 扩展 state 字段
-- 上传、sandbox、memory、title、todo
-- subagent
+- `web_search`
+- `web_fetch`
+- `write_report`
+- `present_files` 与 `artifacts` 真正联动
+- 更贴近 DeerFlow 语义的 tool/runtime middleware
+- 更完整的 stream 事件
 
 ## 下一步建议
 
-如果继续往前走，推荐顺序是：
+建议不要再继续泛化抽象，而是围绕当前阶段任务闭环推进：
 
-1. 加 `checkpointer`
-   先支持真正多轮对话
+1. 引入 `web_search`
+2. 引入 `web_fetch`
+3. 新增 `write_report`
+4. 让 `present_files` 真正写入 `artifacts`
+5. 让 `stream()` 能清晰输出工具调用与工具结果
+6. 把当前 middleware 调整得更贴近 DeerFlow runtime 语义
 
-2. 加 `tools`
-   先接一个最简单的同步工具
+等这个闭环稳定后，再往 DeerFlow 的更完整能力扩展：
 
-3. 加一个基础 middleware
-   比如 tool error handling
-
-4. 扩展 `ThreadState`
-   增加 `artifacts`、`title`、`thread_data`
-
-5. 再考虑 sandbox / uploads / subagent
+- 学术综述
+- 技术可行性分析
+- 文件分析
+- 报告 / PPT / 脚本生成
+- 更复杂的工作流
+- 最后再考虑 sandbox / subagent / memory
 
 ## 结论
 
-这个仓库现在已经完成了“最小可运行骨架”阶段，不再需要把 `config`、`state`、`agent`、`client` 当作待设计项。
+一句话总结当前状态：
 
-一句话版本：
-
-> DeerFlow Lite = 一个薄 CLI + 一个薄 client + 一个薄 agent factory + 一个最小 state + 一组环境变量配置。
+> DeerFlow Lite 的总体方向始终是 DeerFlow，本阶段只是先用 Web 调研这个最容易闭环的任务，去推动 runtime 真正长成 DeerFlow 风格的系统。
