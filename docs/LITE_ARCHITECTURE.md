@@ -389,7 +389,9 @@ class ThreadState(AgentState):
 2. `LoopDetectionMiddleware`
 3. `ClarificationMiddleware`
 
-它们是 DeerFlow 风格 runtime 的第一层保护壳。
+但当前 demo 实现不应继续作为默认 runtime 行为存在。
+
+它们是 DeerFlow 风格 runtime 的第一层保护壳，但需要围绕真实工具执行语义重建后再默认启用。
 
 ## 9. 当前阶段的任务闭环
 
@@ -471,7 +473,7 @@ class ThreadState(AgentState):
 - 工具定义
 - 工具注册
 
-### `app/middlewares/*`
+### `app/agents/middlewares/*`
 
 负责：
 

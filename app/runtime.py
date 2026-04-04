@@ -6,7 +6,6 @@ from langchain.agents.middleware import AgentMiddleware
 
 from .checkpointer import get_default_checkpointer
 from .config import AppConfig
-from .middlewares import ClarificationMiddleware, LoopDetectionMiddleware, ToolErrorHandlingMiddleware
 from .state import ThreadState
 from .tools import get_builtin_tools
 
@@ -20,11 +19,7 @@ def get_tools(config: AppConfig) -> list:
 def get_middlewares(config: AppConfig) -> Sequence[AgentMiddleware]:
     """Resolve runtime middlewares for the given config."""
     _ = config
-    return [
-        ToolErrorHandlingMiddleware(),
-        LoopDetectionMiddleware(),
-        ClarificationMiddleware(),
-    ]
+    return []
 
 
 def get_checkpointer(config: AppConfig):

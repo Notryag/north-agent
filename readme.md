@@ -155,7 +155,7 @@ print(response)
 - `runtime.py` 统一解析 tools / middlewares / checkpointer
 - 最小 `ThreadState`
 - 基础 checkpointer 接口
-- 最小工具注册与 middleware 骨架
+- 最小工具注册骨架
 - 线程路径模型
 - CLI 入口
 - 基础测试
@@ -168,7 +168,7 @@ print(response)
 - `web_fetch`
 - `write_report`
 - `present_files` 与 `artifacts` 真正联动
-- 更贴近 DeerFlow 语义的 tool/runtime middleware
+- 围绕真实工具语义重建 runtime middleware
 - 更完整的 stream 事件
 
 ## 下一步建议

@@ -110,6 +110,11 @@
 
 让这个系统从“能跑”变成“能持续跑”。
 
+说明：
+
+- demo 版 middleware 不应继续留在默认 runtime 中
+- 只有在语义真正围绕工具失败、tool loop、clarification 恢复设计后，才应重新默认启用
+
 要点：
 
 1. `ToolErrorHandlingMiddleware`

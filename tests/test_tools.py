@@ -9,7 +9,6 @@ def test_builtin_tool_registry_contains_expected_tools():
     assert [tool.name for tool in tools] == [
         "ask_clarification",
         "present_files",
-        "get_time",
     ]
 
 
@@ -19,7 +18,6 @@ def test_runtime_returns_builtin_tools():
     assert [tool.name for tool in tools] == [
         "ask_clarification",
         "present_files",
-        "get_time",
     ]
 
 

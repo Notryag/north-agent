@@ -32,22 +32,23 @@
 - 这是当前阶段最核心的任务闭环
 - 这些能力后续也能直接服务 DeerFlow 的学术综述、技术分析、文件分析与报告生成
 
-### 2. 修正第一批 runtime middleware 语义 `pending`
+### 2. 按 DeerFlow 语义重建 runtime middleware `pending`
 
 优先顺序：
 
-1. `ToolErrorHandlingMiddleware`
-2. `LoopDetectionMiddleware`
-3. `ClarificationMiddleware`
+1. 工具失败恢复
+2. tool loop 检测
+3. clarification 中断与恢复
 
 原因：
 
 - 这是最小但收益最高的一组 runtime 保护
-- 但当前实现还更像 demo 语义，未完全对齐 DeerFlow 风格 runtime
+- 旧版 demo middleware 已从默认 runtime 移除，避免继续误导主线
+- 后续应围绕真实工具执行与任务恢复语义重建
 
 建议目录：
 
-- `app/middlewares/`
+- `app/agents/middlewares/`
 
 ### 3. 完善 artifact 输出闭环 `pending`
 
@@ -84,9 +85,6 @@
 
 1. `ask_clarification`
 2. `present_files`
-3. 一个简单验证工具
-   - `get_time`
-   - 或本地只读文件工具
 
 完成情况：
 
@@ -94,7 +92,6 @@
 - 已新增 `app/tools/builtin/`
 - 已接入 `ask_clarification`
 - 已接入 `present_files`
-- 已接入 `get_time`
 - 已通过 `runtime.get_tools(...)` 接入 agent runtime
 
 ### 线程路径基础模型 `done`
