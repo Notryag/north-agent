@@ -1,59 +1,45 @@
 # Docs Guide
 
-这个目录里的文档分工要明确，不然 AI 很容易在 `TODO`、`plan`、`architecture` 三份文件之间来回重复。
+默认不要把 `docs/` 全部读一遍。
 
-## 推荐阅读顺序
+先看这份索引，再按任务类型跳转。
 
-1. `docs/TODO.md`
-2. `docs/LITE_EVOLUTION_PLAN.md`
-3. `docs/LITE_ARCHITECTURE.md`
+## 当前北极星闭环
 
-## 每份文档负责什么
+> Web 调研 -> 信息整理 -> Markdown 报告 -> artifact 输出
 
-### `docs/TODO.md`
+## 最小阅读路径
 
-负责：
+1. 先读 `docs/README.md`
+2. 再读 `docs/TODO.md` 中相关任务
+3. 直接看代码
+4. 只有必要时才补读其他文档
 
-- 当前可执行任务清单
-- checkbox 状态
-- 每个任务的关联文件
-- 每个任务的完成标准
+## 什么时候看哪份
 
-不负责：
+- 做具体功能或修 bug：
+  看 `docs/TODO.md`
 
-- 长篇阶段论证
-- 目录边界设计细节
+- 判断优先级、阶段顺序、该不该做：
+  看 `docs/LITE_EVOLUTION_PLAN.md`
 
-### `docs/LITE_EVOLUTION_PLAN.md`
+- 判断代码该放哪、模块边界怎么收：
+  看 `docs/LITE_ARCHITECTURE.md`
 
-负责：
+## 文档职责
 
-- 为什么当前阶段先做这些
-- 各阶段先后顺序
-- 优先级判断标准
+- `docs/TODO.md`
+  当前可执行任务、checkbox 状态、关联文件、完成标准
 
-不负责：
+- `docs/LITE_EVOLUTION_PLAN.md`
+  计划索引，继续跳到 `docs/plan/`
 
-- checkbox 任务跟踪
-- 已完成文件清单
-
-### `docs/LITE_ARCHITECTURE.md`
-
-负责：
-
-- 模块职责
-- 目标目录结构
-- runtime 边界
-- 哪类逻辑应该放到哪里
-
-不负责：
-
-- 近期待办列表
-- 任务状态管理
+- `docs/LITE_ARCHITECTURE.md`
+  架构索引，继续跳到 `docs/architecture/`
 
 ## AI 更新规则
 
-1. 做完具体任务后，先更新 `docs/TODO.md`
-2. 如果任务优先级或阶段顺序变了，再更新 `docs/LITE_EVOLUTION_PLAN.md`
-3. 如果模块归属、目录边界或状态职责变了，再更新 `docs/LITE_ARCHITECTURE.md`
-4. 如果只是代码细节变化，不要把三份文档都改一遍
+1. 完成具体任务后，先更新 `docs/TODO.md`
+2. 阶段顺序或优先级变了，再更新 `docs/LITE_EVOLUTION_PLAN.md`
+3. 模块归属或目录边界变了，再更新 `docs/LITE_ARCHITECTURE.md`
+4. 不要因为一次代码改动，把三份文档全部重写

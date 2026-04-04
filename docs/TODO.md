@@ -8,10 +8,27 @@
 
 如果需要看模块职责、目录边界、未来目标结构，请看 `docs/LITE_ARCHITECTURE.md`。
 
+## 快速索引
+
+- 做 Web 工具：
+  看 `T1`、`T2`
+
+- 做报告输出 / artifacts：
+  看 `T3`、`T4`、`T6`
+
+- 做流式事件：
+  看 `T5`
+
+- 做 state 约定：
+  看 `T4`、`T6`、`T7`
+
+- 做 runtime 保护：
+  看 `T8`
+
 ## 使用规则
 
 - `[ ]` 未完成，属于当前或近期应做任务
-- `[x]` 已完成，可以保留在本文件中作为最近完成记录
+- `[x]` 已完成，一般不保留在本文件主体
 - `[-]` 明确暂缓，不属于当前阶段主线
 
 每个任务都应尽量包含：
@@ -26,6 +43,10 @@
 2. 如果实际改动文件与 TODO 中列出的文件不同，要同步修正“关联文件”
 3. 如果改动改变了阶段顺序，更新 `docs/LITE_EVOLUTION_PLAN.md`
 4. 如果改动改变了模块边界，更新 `docs/LITE_ARCHITECTURE.md`
+
+默认不需要完整阅读 `docs/LITE_EVOLUTION_PLAN.md` 和 `docs/LITE_ARCHITECTURE.md`。
+
+只有当任务涉及优先级调整或模块边界变化时，才需要补读。
 
 ## 当前北极星闭环
 
@@ -138,42 +159,6 @@
   `tests/test_middlewares.py`
   完成标准：
   行为围绕真实工具失败、tool loop、clarification 恢复设计；确认语义成立后再默认启用。
-
-## Recent Done
-
-- [x] D1. 统一 runtime 装配入口
-  关联文件：
-  `app/agent.py`
-  `app/runtime.py`
-  `app/checkpointer.py`
-  `app/state.py`
-
-- [x] D2. 建立最小 builtin tools 骨架
-  关联文件：
-  `app/tools/__init__.py`
-  `app/tools/registry.py`
-  `app/tools/builtin/__init__.py`
-  `app/tools/builtin/clarification.py`
-  `app/tools/builtin/present_files.py`
-  `tests/test_tools.py`
-
-- [x] D3. 建立线程路径基础模型
-  关联文件：
-  `app/threads/__init__.py`
-  `app/threads/paths.py`
-  `tests/test_threads.py`
-
-- [x] D4. 稳住 `AppClient.chat()` / `AppClient.stream()`
-  关联文件：
-  `app/client.py`
-  `tests/test_app.py`
-
-- [x] D5. 移除 demo 语义的默认 middleware 与占位工具
-  关联文件：
-  `app/runtime.py`
-  `app/tools/registry.py`
-  `app/__init__.py`
-  `tests/test_tools.py`
 
 ## Parked
 
