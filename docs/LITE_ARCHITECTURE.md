@@ -1,5 +1,19 @@
 # DeerFlow Lite 架构说明
 
+## 文档职责
+
+本文回答的是：
+
+- 模块边界应该怎么划分
+- 目标目录结构应该怎么收敛
+- 当前阶段哪些能力属于 runtime 核心
+
+本文不负责跟踪近期待办状态。
+
+如果需要看当前可执行任务，请看 `docs/TODO.md`。
+
+如果需要看阶段顺序与优先级，请看 `docs/LITE_EVOLUTION_PLAN.md`。
+
 ## 1. 定位
 
 `deerflow-lite` 的总体方向不变，始终是朝着 **简化版 DeerFlow runtime** 演进。

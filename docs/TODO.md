@@ -1,144 +1,213 @@
 # DeerFlow Lite TODO
 
-这份 TODO 的前提不变：
+这份文件只做一件事：
 
-- 总体方向仍然是 DeerFlow
-- 当前阶段用 Web 调研任务来收敛实现
-- 任务节点不是分叉方向
+> 维护当前阶段可直接执行的任务清单。
 
-## 当前阶段
+如果需要看阶段原因、优先级来源、长期演进顺序，请看 `docs/LITE_EVOLUTION_PLAN.md`。
 
-当前 active TODO 只保留未完成项。
+如果需要看模块职责、目录边界、未来目标结构，请看 `docs/LITE_ARCHITECTURE.md`。
 
-已完成的 Phase 0 / Phase 1 内容已归档到本文末尾，不再作为待办处理。
+## 使用规则
 
-## 当前待完成
+- `[ ]` 未完成，属于当前或近期应做任务
+- `[x]` 已完成，可以保留在本文件中作为最近完成记录
+- `[-]` 明确暂缓，不属于当前阶段主线
 
-当前待办应优先服务这个阶段性闭环：
+每个任务都应尽量包含：
+
+1. 目标
+2. 关联文件
+3. 完成标准
+
+后续 AI 更新本文件时，按这几个规则处理：
+
+1. 完成代码后，优先回写本文件中的 checkbox 状态
+2. 如果实际改动文件与 TODO 中列出的文件不同，要同步修正“关联文件”
+3. 如果改动改变了阶段顺序，更新 `docs/LITE_EVOLUTION_PLAN.md`
+4. 如果改动改变了模块边界，更新 `docs/LITE_ARCHITECTURE.md`
+
+## 当前北极星闭环
+
+当前阶段所有 active TODO 都应服务这个闭环：
 
 > Web 调研 -> 信息整理 -> Markdown 报告 -> artifact 输出
 
-### 1. 补齐调研任务最小工具链 `pending`
+如果某个任务不能直接帮助这个闭环跑通，优先级应下降。
 
-优先顺序：
+## Active TODO
 
-1. `web_search`
-2. `web_fetch`
-3. `write_report`
-4. `present_files` 与 `artifacts` 联动
+### P0 主线闭环
 
-原因：
+- [ ] T1. 新增 `web_search` 最小工具
+  目标：
+  为调研任务提供最小可用的搜索入口，作为后续 `web_fetch` 的上游。
+  关联文件：
+  `app/tools/web/__init__.py`
+  `app/tools/web/search.py`
+  `app/tools/registry.py`
+  `app/runtime.py`
+  `tests/test_tools.py`
+  完成标准：
+  tool 已接入默认 runtime；返回结果可供后续页面抓取使用；有最小测试覆盖。
 
-- 这是当前阶段最核心的任务闭环
-- 这些能力后续也能直接服务 DeerFlow 的学术综述、技术分析、文件分析与报告生成
+- [ ] T2. 新增 `web_fetch` 页面读取工具
+  目标：
+  让 agent 能基于搜索结果继续读取网页正文，而不是停在搜索摘要。
+  关联文件：
+  `app/tools/web/__init__.py`
+  `app/tools/web/fetch.py`
+  `app/tools/registry.py`
+  `app/runtime.py`
+  `tests/test_tools.py`
+  完成标准：
+  tool 已接入默认 runtime；输入输出格式稳定；可以和 `web_search` 串起来。
 
-### 2. 按 DeerFlow 语义重建 runtime middleware `pending`
+- [ ] T3. 新增 `write_report`
+  目标：
+  把最终整理结果写成稳定输出文件，而不是只返回一段文本。
+  关联文件：
+  `app/tools/builtin/write_report.py`
+  `app/tools/builtin/__init__.py`
+  `app/tools/registry.py`
+  `app/outputs/__init__.py`
+  `app/outputs/writer.py`
+  `app/threads/paths.py`
+  `tests/test_tools.py`
+  完成标准：
+  能写出 `report.md`；输出路径稳定；工具返回值可继续交给 `present_files`。
 
-优先顺序：
+- [ ] T4. 改造 `present_files`，真正联动 `artifacts`
+  目标：
+  让 artifact 成为线程状态的一等数据，而不是只是给模型看的字符串。
+  关联文件：
+  `app/tools/builtin/present_files.py`
+  `app/state.py`
+  `app/client.py`
+  `app/runtime.py`
+  `tests/test_tools.py`
+  `tests/test_app.py`
+  完成标准：
+  `ThreadState.artifacts` 被更新；`chat()` / `stream()` 都能拿到 artifact 结果；工具输出不再只是一段展示文本。
 
-1. 工具失败恢复
-2. tool loop 检测
-3. clarification 中断与恢复
+- [ ] T5. 扩展 `AppClient.stream()` 事件协议
+  目标：
+  让流式输出不仅有 AI 文本，还能看到工具与状态变化。
+  关联文件：
+  `app/client.py`
+  `app/state.py`
+  `tests/test_app.py`
+  完成标准：
+  至少覆盖 `ai`、`tool`、`values`、`end`、`error`；artifact 相关状态变化对调用方可见。
 
-原因：
+### P1 支撑闭环
 
-- 这是最小但收益最高的一组 runtime 保护
-- 旧版 demo middleware 已从默认 runtime 移除，避免继续误导主线
-- 后续应围绕真实工具执行与任务恢复语义重建
+- [ ] T6. 把线程路径模型真正接入输出链路
+  目标：
+  让 `ThreadPaths` 不只是静态路径定义，而是实际参与报告写出与 artifact 存放。
+  关联文件：
+  `app/threads/paths.py`
+  `app/tools/builtin/present_files.py`
+  `app/tools/builtin/write_report.py`
+  `app/state.py`
+  `tests/test_threads.py`
+  完成标准：
+  报告文件和 artifact 有稳定 thread 级位置；路径约定被测试覆盖。
 
-建议目录：
+- [ ] T7. 明确 `ThreadState` 的最小更新约定
+  目标：
+  让后续 AI 清楚哪些字段是 runtime 主写、哪些字段是工具写入。
+  关联文件：
+  `app/state.py`
+  `app/client.py`
+  `app/runtime.py`
+  `docs/LITE_ARCHITECTURE.md`
+  完成标准：
+  `artifacts`、`thread_data`、`uploaded_files` 的职责和更新来源有明确文档或代码约束。
 
-- `app/agents/middlewares/`
+- [ ] T8. 以 DeerFlow 语义重建第一批 middleware
+  目标：
+  在不回退到 demo 语义的前提下，重建最小 runtime 保护层。
+  关联文件：
+  `app/agents/__init__.py`
+  `app/agents/middlewares/__init__.py`
+  `app/agents/middlewares/tool_error.py`
+  `app/agents/middlewares/loop_detection.py`
+  `app/agents/middlewares/clarification.py`
+  `app/runtime.py`
+  `tests/test_middlewares.py`
+  完成标准：
+  行为围绕真实工具失败、tool loop、clarification 恢复设计；确认语义成立后再默认启用。
 
-### 3. 完善 artifact 输出闭环 `pending`
+## Recent Done
 
-重点：
+- [x] D1. 统一 runtime 装配入口
+  关联文件：
+  `app/agent.py`
+  `app/runtime.py`
+  `app/checkpointer.py`
+  `app/state.py`
 
-1. `write_report` 生成输出文件
-2. `present_files` 真正写入 `ThreadState.artifacts`
-3. `stream()` 中能看到 artifact 相关状态变化
+- [x] D2. 建立最小 builtin tools 骨架
+  关联文件：
+  `app/tools/__init__.py`
+  `app/tools/registry.py`
+  `app/tools/builtin/__init__.py`
+  `app/tools/builtin/clarification.py`
+  `app/tools/builtin/present_files.py`
+  `tests/test_tools.py`
 
-### 4. 完善流式事件协议 `pending`
+- [x] D3. 建立线程路径基础模型
+  关联文件：
+  `app/threads/__init__.py`
+  `app/threads/paths.py`
+  `tests/test_threads.py`
 
-目标：
+- [x] D4. 稳住 `AppClient.chat()` / `AppClient.stream()`
+  关联文件：
+  `app/client.py`
+  `tests/test_app.py`
 
-- 不只看 AI 文本
-- 能看到工具调用
-- 能看到工具结果
-- 能看到 state 摘要变化
+- [x] D5. 移除 demo 语义的默认 middleware 与占位工具
+  关联文件：
+  `app/runtime.py`
+  `app/tools/registry.py`
+  `app/__init__.py`
+  `tests/test_tools.py`
 
-### 5. 保持线程模型可继续扩展 `pending`
+## Parked
 
-当前已有：
+- [-] S1. sandbox
+  原因：
+  当前阶段核心不是执行隔离，而是先打通调研闭环。
 
-- `app/threads/paths.py`
-- 最小 `ThreadState`
-- checkpointer 接口
+- [-] S2. memory
+  原因：
+  当前阶段还没有形成值得持久化的长期任务流。
 
-接下来要保证这些能力能自然支撑后续 DeerFlow 任务，而不是只服务当前 demo。
+- [-] S3. MCP
+  原因：
+  现在优先做内建最小工具链，不引入额外接入面。
 
-## 已完成
+- [-] S4. vision
+  原因：
+  当前闭环不依赖图像理解。
 
-### 工具层基础骨架 `done`
+- [-] S5. title middleware / todo middleware
+  原因：
+  属于外围能力，不是当前主线。
 
-最小工具集建议：
+- [-] S6. subagent
+  原因：
+  当前代码规模与任务复杂度还不足以证明其必要性。
 
-1. `ask_clarification`
-2. `present_files`
+- [-] S7. 大而全工具注册系统
+  原因：
+  现在应先让最小工具链跑通，而不是提前泛化。
 
-完成情况：
+## 当前阶段退出标准
 
-- 已新增 `app/tools/`
-- 已新增 `app/tools/builtin/`
-- 已接入 `ask_clarification`
-- 已接入 `present_files`
-- 已通过 `runtime.get_tools(...)` 接入 agent runtime
-
-### 线程路径基础模型 `done`
-
-完成情况：
-
-- 已新增 `app/threads/paths.py`
-- 已定义线程目录、workspace、uploads、outputs 路径模型
-- 已提供目录创建入口
-
-## 暂时不要做
-
-- sandbox
-- memory
-- MCP
-- vision
-- title middleware
-- todo middleware
-- subagent
-- 大而全工具注册系统
-
-这些功能现在都会稀释主线，因为当前阶段的核心不是“做得更像完整 DeerFlow”，而是“围绕一个任务节点把 DeerFlow 核心 runtime 打通”。
-
-## Exit criteria
-
-进入下一阶段之前，至少满足：
-
-- Web 调研闭环已经跑通
-- artifact 输出已经打通
-- runtime 保护能力达到最小可用
-
-达到这些条件后，再继续扩展到更广义的 DeerFlow 任务。
-
-## 已归档
-
-### Phase 0
-
-- Stabilize `AppClient.stream()` `done`
-- Define a stable event contract `done`
-- Strengthen baseline tests `done`
-
-### Phase 1 / 基础 runtime 收敛
-
-- Add runtime assembly `done`
-- Add a formal checkpointer module `done`
-- Expand `ThreadState` minimally `done`
-
-### 归档说明
-
-这些项已经在当前代码库中完成，不再保留为 active TODO。后续如果需要回看实现细节，直接查看对应源码文件即可。
+- [ ] Web 调研闭环已经跑通
+- [ ] artifact 输出已经打通
+- [ ] runtime 保护能力达到最小可用
+- [ ] 下一阶段可以自然扩到文件分析、代码执行、报告生成
