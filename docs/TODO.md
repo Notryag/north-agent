@@ -31,7 +31,7 @@
 
 - `app/middlewares/`
 
-### 8. Add a tiny tool layer `pending`
+### 8. Add a tiny tool layer `done`
 
 最小工具集建议：
 
@@ -41,16 +41,22 @@
    - `get_time`
    - 或本地只读文件工具
 
-建议目录：
+完成情况：
 
-- `app/tools/`
-- `app/tools/builtin/`
+- 已新增 `app/tools/`
+- 已新增 `app/tools/builtin/`
+- 已接入 `ask_clarification`
+- 已接入 `present_files`
+- 已接入 `get_time`
+- 已通过 `runtime.get_tools(...)` 接入 agent runtime
 
-### 9. Add thread-local file model `pending`
+### 9. Add thread-local file model `done`
 
-建议目录：
+完成情况：
 
-- `app/threads/paths.py`
+- 已新增 `app/threads/paths.py`
+- 已定义线程目录、workspace、uploads、outputs 路径模型
+- 已提供目录创建入口
 
 后续再加：
 
@@ -61,11 +67,11 @@
 
 如果只做一轮高性价比改动，建议按这个批次推进：
 
-1. 添加 `app/middlewares/`
-2. 添加第一组高价值 middleware
-3. 添加 `app/tools/`
-4. 添加最小工具集
-5. 添加线程本地文件模型
+1. 为工具调用补充真实 agent 级集成测试
+2. 引入 `ThreadDataMiddleware`
+3. 引入 `UploadsMiddleware`
+4. 让 `present_files` 与线程输出目录联动
+5. 视需要扩展 `artifacts` 写入流程
 
 ## 暂时不要做
 

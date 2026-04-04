@@ -7,6 +7,7 @@ from .config import AppConfig, load_environment
 from .middlewares import ClarificationMiddleware, LoopDetectionMiddleware, ToolErrorHandlingMiddleware
 from .runtime import get_checkpointer, get_middlewares, get_state_schema, get_tools
 from .state import ThreadState
+from .tools import get_builtin_tools
 
 __all__ = [
     "AppClient",
@@ -17,6 +18,7 @@ __all__ = [
     "ClarificationMiddleware",
     "get_checkpointer",
     "get_default_checkpointer",
+    "get_builtin_tools",
     "get_middlewares",
     "get_state_schema",
     "get_tools",
