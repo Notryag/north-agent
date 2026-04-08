@@ -49,11 +49,23 @@ def resolve_artifact_paths(
     return _merge_artifacts([], artifacts)
 
 
+def present_file_listing(
+    paths: list[str],
+    *,
+    summary: str | None = None,
+    thread_id: str = "default",
+    base_dir: Path | None = None,
+) -> str:
+    artifacts = resolve_artifact_paths(paths, thread_id=thread_id, base_dir=base_dir)
+    return _format_presented_files(artifacts, summary)
+
+
 @tool
 def present_files(
+    *,
+    runtime: ToolRuntime,
     paths: list[str],
     summary: str | None = None,
-    runtime: ToolRuntime | None = None,
 ) -> str | Command:
     """Present output files and persist them into thread artifacts."""
     if not paths:
@@ -66,7 +78,7 @@ def present_files(
         return f"Present files failed: {exc}"
 
     message = _format_presented_files(artifacts, summary)
-    if runtime is None or runtime.tool_call_id is None:
+    if runtime.tool_call_id is None:
         return message
 
     existing_artifacts: list[str] = []

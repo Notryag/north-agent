@@ -29,9 +29,9 @@ def write_report_file(
 @tool
 def write_report(
     *,
+    runtime: ToolRuntime,
     content: str,
     filename: str = "report.md",
-    runtime: ToolRuntime | None = None,
 ) -> str:
     """Write a Markdown report into the current thread outputs directory."""
     resolved_thread_id = resolve_thread_id(None, runtime)
