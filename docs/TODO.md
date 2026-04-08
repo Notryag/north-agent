@@ -10,11 +10,8 @@
 
 ## 快速索引
 
-- 做 Web 工具：
-  看 `T1`、`T2`
-
 - 做报告输出 / artifacts：
-  看 `T3`、`T4`、`T6`
+  看 `T4`、`T6`
 
 - 做流式事件：
   看 `T5`
@@ -59,44 +56,6 @@
 ## Active TODO
 
 ### P0 主线闭环
-
-- [ ] T1. 新增 `web_search` 最小工具
-  目标：
-  为调研任务提供最小可用的搜索入口，作为后续 `web_fetch` 的上游。
-  关联文件：
-  `app/tools/web/__init__.py`
-  `app/tools/web/search.py`
-  `app/tools/registry.py`
-  `app/runtime.py`
-  `tests/test_tools.py`
-  完成标准：
-  tool 已接入默认 runtime；返回结果可供后续页面抓取使用；有最小测试覆盖。
-
-- [ ] T2. 新增 `web_fetch` 页面读取工具
-  目标：
-  让 agent 能基于搜索结果继续读取网页正文，而不是停在搜索摘要。
-  关联文件：
-  `app/tools/web/__init__.py`
-  `app/tools/web/fetch.py`
-  `app/tools/registry.py`
-  `app/runtime.py`
-  `tests/test_tools.py`
-  完成标准：
-  tool 已接入默认 runtime；输入输出格式稳定；可以和 `web_search` 串起来。
-
-- [ ] T3. 新增 `write_report`
-  目标：
-  把最终整理结果写成稳定输出文件，而不是只返回一段文本。
-  关联文件：
-  `app/tools/builtin/write_report.py`
-  `app/tools/builtin/__init__.py`
-  `app/tools/registry.py`
-  `app/outputs/__init__.py`
-  `app/outputs/writer.py`
-  `app/threads/paths.py`
-  `tests/test_tools.py`
-  完成标准：
-  能写出 `report.md`；输出路径稳定；工具返回值可继续交给 `present_files`。
 
 - [ ] T4. 改造 `present_files`，真正联动 `artifacts`
   目标：

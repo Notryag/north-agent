@@ -22,6 +22,7 @@
 ## 当前代码现实
 
 - 当前真正存在的 agent 装配文件是 `app/agent.py`
+- 当前已经有 `app/tools/web/` 和 `app/outputs/`
 - 当前还没有 `app/agents/` 目录
 - `docs/TODO.md` 中的 `T8` 是未来重建 middleware 时才会创建 `app/agents/middlewares/`
 - 不要假设 repo 里已经有完整 DeerFlow 目录结构
@@ -37,11 +38,11 @@
 
 优先看 `docs/TODO.md` 的这些任务：
 
-- `T1` `web_search`
-- `T2` `web_fetch`
-- `T3` `write_report`
 - `T4` `present_files -> artifacts`
 - `T5` `stream()` 事件协议
+- `T6` 线程输出链路
+- `T7` `ThreadState` 更新约定
+- `T8` runtime middleware 重建
 
 ## 文档分工
 
