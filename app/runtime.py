@@ -4,6 +4,7 @@ from collections.abc import Sequence
 
 from langchain.agents.middleware import AgentMiddleware
 
+from .agents.middlewares import get_default_middlewares
 from .checkpointer import get_default_checkpointer
 from .config import AppConfig
 from .state import ThreadState
@@ -19,7 +20,7 @@ def get_tools(config: AppConfig) -> list:
 def get_middlewares(config: AppConfig) -> Sequence[AgentMiddleware]:
     """Resolve runtime middlewares for the given config."""
     _ = config
-    return []
+    return get_default_middlewares()
 
 
 def get_checkpointer(config: AppConfig):

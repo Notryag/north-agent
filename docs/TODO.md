@@ -105,7 +105,7 @@
   完成标准：
   `artifacts`、`thread_data`、`uploaded_files` 的职责和更新来源有明确文档或代码约束。
 
-- [ ] T8. 以 DeerFlow 语义重建第一批 middleware
+- [x] T8. 以 DeerFlow 语义重建第一批 middleware
   目标：
   在不回退到 demo 语义的前提下，重建最小 runtime 保护层。
   关联文件：
