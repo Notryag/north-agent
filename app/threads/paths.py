@@ -6,6 +6,13 @@ from pathlib import Path
 from ..config import PROJECT_ROOT
 
 
+def _normalize_relative_path(path: str | Path) -> Path:
+    candidate = Path(path)
+    if candidate.is_absolute() or ".." in candidate.parts:
+        raise ValueError(f"Invalid thread-relative path: {path}")
+    return candidate
+
+
 @dataclass(frozen=True, slots=True)
 class ThreadPaths:
     thread_id: str
@@ -30,6 +37,30 @@ class ThreadPaths:
     @property
     def outputs_dir(self) -> Path:
         return self.thread_dir / "outputs"
+
+    def resolve_output_path(self, filename: str | Path) -> Path:
+        relative_path = _normalize_relative_path(filename)
+        output_path = self.outputs_dir / relative_path
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        return output_path
+
+    def resolve_artifact_path(self, path: str | Path) -> Path:
+        relative_path = _normalize_relative_path(path)
+        if relative_path.parts[:1] == ("outputs",):
+            artifact_path = self.thread_dir / relative_path
+        else:
+            artifact_path = self.outputs_dir / relative_path
+        artifact_path.parent.mkdir(parents=True, exist_ok=True)
+        return artifact_path
+
+    def to_project_relative(self, path: Path) -> str:
+        resolved_path = path.resolve()
+        for root in (PROJECT_ROOT, self.base_dir):
+            try:
+                return resolved_path.relative_to(root.resolve()).as_posix()
+            except ValueError:
+                continue
+        return resolved_path.as_posix()
 
     def ensure(self) -> "ThreadPaths":
         self.workspace_dir.mkdir(parents=True, exist_ok=True)

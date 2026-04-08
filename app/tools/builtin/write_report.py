@@ -6,22 +6,8 @@ from langchain.tools import ToolRuntime
 from langchain_core.tools import tool
 
 from ...outputs.writer import write_output_file
-
-
-def _resolve_thread_id(thread_id: str | None, runtime: ToolRuntime | None) -> str:
-    if thread_id:
-        return thread_id
-    if runtime is not None and isinstance(runtime.context, dict):
-        value = runtime.context.get("thread_id")
-        if isinstance(value, str) and value:
-            return value
-    if runtime is not None:
-        configurable = runtime.config.get("configurable", {})
-        if isinstance(configurable, dict):
-            value = configurable.get("thread_id")
-            if isinstance(value, str) and value:
-                return value
-    return "default"
+from ...threads import ThreadPaths
+from .._runtime import resolve_thread_id
 
 
 def write_report_file(
@@ -45,10 +31,10 @@ def write_report(
     *,
     content: str,
     filename: str = "report.md",
-    runtime: ToolRuntime,
+    runtime: ToolRuntime | None = None,
 ) -> str:
     """Write a Markdown report into the current thread outputs directory."""
-    resolved_thread_id = _resolve_thread_id(None, runtime)
+    resolved_thread_id = resolve_thread_id(None, runtime)
     try:
         output_path = write_report_file(
             content=content,
@@ -57,4 +43,5 @@ def write_report(
         )
     except Exception as exc:
         return f"Report write failed: {exc}"
-    return f"Report written to {output_path.as_posix()}"
+    relative_output_path = ThreadPaths(thread_id=resolved_thread_id).to_project_relative(output_path)
+    return f"Report written to {relative_output_path}"

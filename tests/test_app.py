@@ -1,5 +1,5 @@
 from langchain_core.language_models.fake_chat_models import FakeListChatModel
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, ToolMessage
 
 from app.client import AppClient
 from app.config import AppConfig
@@ -15,6 +15,8 @@ def test_chat_returns_last_ai_message(monkeypatch):
     response = client.chat("Explain DeerFlow in one sentence.", thread_id="thread-1")
 
     assert response == "DeerFlow is an agent shell."
+    assert response.thread_id == "thread-1"
+    assert response.artifacts == ()
 
 
 def test_stream_emits_message_and_values_events(monkeypatch):
@@ -27,9 +29,14 @@ def test_stream_emits_message_and_values_events(monkeypatch):
     events = list(client.stream("hello", thread_id="thread-1"))
 
     assert [event.type for event in events] == ["values", "ai", "values", "end"]
-    assert events[1].data == {"role": "ai", "content": "Minimal reply", "thread_id": "thread-1"}
+    assert events[1].data == {
+        "role": "ai",
+        "content": "Minimal reply",
+        "thread_id": "thread-1",
+        "artifacts": (),
+    }
     assert len(events[2].data["chunk"]["messages"]) == 2
-    assert events[-1].data == {"thread_id": "thread-1"}
+    assert events[-1].data == {"thread_id": "thread-1", "artifacts": ()}
 
 
 def test_stream_passes_thread_context_and_config():
@@ -69,7 +76,10 @@ def test_chat_returns_last_ai_event_content():
     client = AppClient(AppConfig(model_name="openai:gpt-4o-mini"))
     client._agent = StubAgent()
 
-    assert client.chat("hello", thread_id="thread-1") == "last"
+    response = client.chat("hello", thread_id="thread-1")
+
+    assert response == "last"
+    assert response.artifacts == ()
 
 
 def test_stream_extracts_text_from_list_content():
@@ -89,3 +99,61 @@ def test_stream_extracts_text_from_list_content():
 
     assert events[1].type == "ai"
     assert events[1].data["content"] == "part one\npart two"
+
+
+def test_stream_emits_tool_events_with_artifacts():
+    class StubAgent:
+        def stream(self, state, config=None, context=None, stream_mode=None):
+            yield {
+                "messages": [
+                    state["messages"][0],
+                    ToolMessage(
+                        content="Files:\n- .deerflow/threads/thread-1/outputs/report.md",
+                        name="present_files",
+                        tool_call_id="tool-1",
+                    ),
+                ],
+                "artifacts": [".deerflow/threads/thread-1/outputs/report.md"],
+            }
+            yield {
+                "messages": [state["messages"][0], AIMessage(content="done", id="ai-1")],
+                "artifacts": [".deerflow/threads/thread-1/outputs/report.md"],
+            }
+
+    client = AppClient(AppConfig(model_name="openai:gpt-4o-mini"))
+    client._agent = StubAgent()
+
+    events = list(client.stream("hello", thread_id="thread-1"))
+
+    assert [event.type for event in events] == ["tool", "values", "ai", "values", "end"]
+    assert events[0].data["name"] == "present_files"
+    assert events[0].data["artifacts"] == (".deerflow/threads/thread-1/outputs/report.md",)
+    assert events[-1].data["artifacts"] == (".deerflow/threads/thread-1/outputs/report.md",)
+
+
+def test_chat_carries_artifacts_from_stream():
+    class StubAgent:
+        def stream(self, state, config=None, context=None, stream_mode=None):
+            yield {
+                "messages": [
+                    state["messages"][0],
+                    ToolMessage(
+                        content="Files:\n- .deerflow/threads/thread-1/outputs/report.md",
+                        name="present_files",
+                        tool_call_id="tool-1",
+                    ),
+                ],
+                "artifacts": [".deerflow/threads/thread-1/outputs/report.md"],
+            }
+            yield {
+                "messages": [state["messages"][0], AIMessage(content="final answer", id="ai-1")],
+                "artifacts": [".deerflow/threads/thread-1/outputs/report.md"],
+            }
+
+    client = AppClient(AppConfig(model_name="openai:gpt-4o-mini"))
+    client._agent = StubAgent()
+
+    response = client.chat("hello", thread_id="thread-1")
+
+    assert response == "final answer"
+    assert response.artifacts == (".deerflow/threads/thread-1/outputs/report.md",)
