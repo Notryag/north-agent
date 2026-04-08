@@ -70,7 +70,7 @@
   完成标准：
   `ThreadState.artifacts` 被更新；`chat()` / `stream()` 都能拿到 artifact 结果；工具输出不再只是一段展示文本。
 
-- [ ] T5. 扩展 `AppClient.stream()` 事件协议
+- [x] T5. 扩展 `AppClient.stream()` 事件协议
   目标：
   让流式输出不仅有 AI 文本，还能看到工具与状态变化。
   关联文件：
@@ -94,7 +94,7 @@
   完成标准：
   报告文件和 artifact 有稳定 thread 级位置；路径约定被测试覆盖。
 
-- [ ] T7. 明确 `ThreadState` 的最小更新约定
+- [x] T7. 明确 `ThreadState` 的最小更新约定
   目标：
   让后续 AI 清楚哪些字段是 runtime 主写、哪些字段是工具写入。
   关联文件：

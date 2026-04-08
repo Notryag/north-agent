@@ -47,6 +47,12 @@
 - 标准化事件流
 - `thread_id` 与 runnable config
 
+说明：
+
+- `thread_id` 在这里是 runtime scope，不是产品层对象
+- 它的职责只是隔离一次持续任务的状态、checkpoint 和 artifact 路径
+- 当前阶段不要围绕它继续发明更重的 thread 业务模型
+
 ### `app/tools/*`
 
 - 工具定义
@@ -70,6 +76,29 @@ class ThreadState(AgentState):
 
 - `artifacts` 对当前阶段尤其重要
 - `thread_data` 是未来文件 / 工作区能力的基础
+
+### 当前最小状态更新约定
+
+- `artifacts`
+  当前唯一默认允许普通工具写入的共享字段。
+  写入内容应是 thread 级 artifact 路径，而不是任意业务对象。
+
+- `thread_data`
+  当前由 runtime 预留。
+  在没有专门工具契约之前，不应由普通工具随意写入。
+
+- `uploaded_files`
+  当前由 runtime / 输入接入层维护。
+  工具可以读取，但不应直接改写。
+
+- `title`
+  当前不是主线能力，不作为普通工具输出目标。
+
+### 关于 `outputs/`
+
+- `outputs/` 只是 artifact 的物理落盘目录
+- 它不是独立产品概念，也不是要扩展成通用文件系统抽象
+- 当前保留它，只是为了让报告和后续 artifact 有稳定线程级落点
 
 ## 当前阶段不该做的事
 

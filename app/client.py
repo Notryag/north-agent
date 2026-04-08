@@ -14,6 +14,16 @@ from .config import AppConfig
 
 @dataclass(slots=True)
 class StreamEvent:
+    """Normalized client event.
+
+    Event types used by the current runtime:
+    - ``ai``: assistant text output
+    - ``tool``: tool message emitted into the graph state
+    - ``values``: raw streamed state chunk
+    - ``end``: terminal success marker
+    - ``error``: terminal failure marker emitted before re-raising
+    """
+
     type: str
     data: dict[str, Any] = field(default_factory=dict)
 

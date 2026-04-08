@@ -157,3 +157,29 @@ def test_chat_carries_artifacts_from_stream():
 
     assert response == "final answer"
     assert response.artifacts == (".deerflow/threads/thread-1/outputs/report.md",)
+
+
+def test_stream_emits_error_event_before_reraising():
+    class StubAgent:
+        def stream(self, state, config=None, context=None, stream_mode=None):
+            raise RuntimeError("boom")
+            yield state
+
+    client = AppClient(AppConfig(model_name="openai:gpt-4o-mini"))
+    client._agent = StubAgent()
+
+    iterator = client.stream("hello", thread_id="thread-1")
+    event = next(iterator)
+
+    assert event.type == "error"
+    assert event.data == {
+        "thread_id": "thread-1",
+        "message": "boom",
+        "error_type": "RuntimeError",
+    }
+
+    try:
+        next(iterator)
+        assert False, "Expected RuntimeError to be re-raised"
+    except RuntimeError as exc:
+        assert str(exc) == "boom"

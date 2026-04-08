@@ -29,5 +29,9 @@ def get_checkpointer(config: AppConfig):
 
 
 def get_state_schema():
-    """Resolve the shared state schema for the lite runtime."""
+    """Resolve the shared state schema for the lite runtime.
+
+    ``ThreadState`` intentionally stays narrow in this phase so tools only need
+    one stable write surface: ``artifacts``.
+    """
     return ThreadState
