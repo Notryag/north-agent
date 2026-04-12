@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from .builtin.clarification import ask_clarification
+from .builtin.fetch import web_fetch
 from .builtin.present_files import present_files
+from .builtin.search import web_search
 from .builtin.write_report import write_report
-from .web import web_fetch, web_search
 
 
 def get_builtin_tools() -> list:

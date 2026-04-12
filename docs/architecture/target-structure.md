@@ -23,8 +23,7 @@ app/
 ├── tools/
 │   ├── __init__.py
 │   ├── registry.py
-│   ├── builtin/
-│   └── web/
+│   └── builtin/
 ├── threads/
 │   ├── __init__.py
 │   └── paths.py
@@ -73,12 +72,7 @@ app/
 ### `app/tools/builtin/`
 
 - 与 runtime 强绑定的内置工具
-- 例如 `ask_clarification`、`present_files`、`write_report`
-
-### `app/tools/web/`
-
-- 当前阶段最关键的 Web 调研工具
-- 例如 `web_search`、`web_fetch`
+- 例如 `ask_clarification`、`web_search`、`web_fetch`、`present_files`、`write_report`
 
 ### `app/threads/`
 
