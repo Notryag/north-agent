@@ -21,7 +21,13 @@ def _supports_tool_binding(model) -> bool:
 def create_chat_model(name: str, thinking_enabled: bool = False):
     """Create a chat model from a provider-prefixed or plain model name."""
     provider, separator, model_name = name.partition(":")
-    kwargs = {"model": model_name, "model_provider": provider} if separator else {"model": name}
+    if separator:
+        kwargs = {"model": model_name, "model_provider": provider}
+    else:
+        # Treat bare model names as OpenAI-compatible by default so providers
+        # behind OPENAI_BASE_URL (DashScope, OpenRouter-compatible gateways, etc.)
+        # work without forcing a prefix in APP_MODEL_NAME.
+        kwargs = {"model": name, "model_provider": "openai"}
 
     # The flag stays in the public config surface even though the minimal app
     # does not apply provider-specific reasoning parameters yet.

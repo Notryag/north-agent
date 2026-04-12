@@ -3,10 +3,10 @@ from pathlib import Path
 from app.config import AppConfig
 from app.runtime import get_tools
 from app.tools import get_builtin_tools
+from app.tools.builtin.fetch import _extract_page_content
 from app.tools.builtin.present_files import present_file_listing, resolve_artifact_paths
+from app.tools.builtin.search import _parse_search_results
 from app.tools.builtin.write_report import write_report_file
-from app.tools.web.fetch import _extract_page_content
-from app.tools.web.search import _parse_search_results
 
 
 def test_builtin_tool_registry_contains_expected_tools():

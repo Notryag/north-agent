@@ -97,8 +97,8 @@ def test_stream_extracts_text_from_list_content():
 
     events = list(client.stream("hello", thread_id="thread-1"))
 
-    assert events[1].type == "ai"
-    assert events[1].data["content"] == "part one\npart two"
+    assert [event.type for event in events] == ["ai", "values", "end"]
+    assert events[0].data["content"] == "part one\npart two"
 
 
 def test_stream_emits_tool_events_with_artifacts():

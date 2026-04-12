@@ -83,6 +83,9 @@ APP_MODEL_NAME=openai:gpt-4o-mini
 APP_THINKING_ENABLED=false
 APP_SYSTEM_PROMPT=You are a concise assistant.
 APP_RECURSION_LIMIT=50
+LANGSMITH_TRACING=false
+LANGSMITH_API_KEY=your_langsmith_api_key
+LANGSMITH_PROJECT=deerflow-lite
 ```
 
 如果你使用 OpenRouter，例如 `stepfun/step-3.5-flash:free`，可以写成：
@@ -94,7 +97,36 @@ APP_MODEL_NAME=openai:stepfun/step-3.5-flash:free
 APP_THINKING_ENABLED=false
 APP_SYSTEM_PROMPT=You are a concise assistant.
 APP_RECURSION_LIMIT=50
+LANGSMITH_TRACING=false
+LANGSMITH_API_KEY=your_langsmith_api_key
+LANGSMITH_PROJECT=deerflow-lite
 ```
+
+## LangSmith
+
+`LangSmith` 主要用来做三类事情：
+
+- 观测 agent / chain / tool 的完整调用链
+- 调试每一步输入输出、报错和耗时
+- 做 prompt / workflow 的评估与回归对比
+
+这个项目可以直接加，而且接法很轻。当前依赖栈里已经带上了 `langsmith`，不需要额外改 runtime 才能开始记录 trace；只要在 `.env` 打开 LangSmith 环境变量，LangChain / LangGraph 就会自动上报。
+
+最小配置示例：
+
+```env
+LANGSMITH_TRACING=true
+LANGSMITH_API_KEY=your_langsmith_api_key
+LANGSMITH_PROJECT=deerflow-lite
+```
+
+然后正常运行：
+
+```powershell
+uv run -m app "hi"
+```
+
+如果你不想开 tracing，就保持 `LANGSMITH_TRACING=false` 或者不配这些变量。
 
 ## 安装依赖
 

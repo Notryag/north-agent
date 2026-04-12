@@ -50,5 +50,8 @@ class AppConfig:
 
     def validate(self) -> None:
         provider, separator, _model_name = self.model_name.partition(":")
-        if separator and provider == "openai" and not os.getenv("OPENAI_API_KEY"):
+        effective_provider = provider if separator else "openai"
+        if effective_provider == "openai" and not os.getenv("OPENAI_API_KEY"):
             raise RuntimeError("OPENAI_API_KEY is not set. Add it to the project .env file before running the app.")
+        if _get_bool("LANGSMITH_TRACING", False) and not os.getenv("LANGSMITH_API_KEY"):
+            raise RuntimeError("LANGSMITH_API_KEY is not set. Add it to the project .env file or disable LANGSMITH_TRACING.")
