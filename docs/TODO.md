@@ -145,7 +145,7 @@
   `docs/architecture/target-structure.md`
   `readme.md`
   完成标准：
-  支持本地 `skills/<name>/SKILL.md`；agent 默认只拿到 skill catalog；具体正文通过 `read_file` 按需读取；可通过配置或 CLI 过滤本轮可见 skill；默认不把 skill 正文直接注入上下文。
+  支持本地 `skills/<name>/SKILL.md`；agent 默认只拿到 skill catalog；具体正文通过 `read_file` + 资源 URI 按需读取；可通过配置或 CLI 过滤本轮可见 skill；默认不把 skill 正文直接注入上下文。
 
 ## Parked
 

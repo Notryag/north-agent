@@ -43,7 +43,7 @@ def get_system_prompt(
 ) -> str:
     """Resolve the final system prompt after skill composition."""
     resolved_skills = list(skills) if skills is not None else get_skills(config, skill_names=skill_names)
-    return compose_system_prompt(config.system_prompt, resolved_skills, container_base_path=config.skills_dir)
+    return compose_system_prompt(config.system_prompt, resolved_skills)
 
 
 def get_middlewares(config: AppConfig) -> Sequence[AgentMiddleware]:

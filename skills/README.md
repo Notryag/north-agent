@@ -29,6 +29,7 @@ Focus on traceable sources first, then draft the report.
 说明：
 
 - agent 默认只看到 skill catalog：`name`、`description`、`location`
-- `SKILL.md` 正文不会默认注入；模型需要时通过内置 `read_file` 按路径懒加载
+- `location` 使用资源 URI，例如 `skill://research/SKILL.md`
+- `SKILL.md` 正文不会默认注入；模型需要时通过内置 `read_file` 按 URI 懒加载
 - frontmatter 里的 `tools` 当前只作为 skill 元信息保留，不直接做 runtime tool gating
 - 通过 `.env` 中的 `APP_SKILLS` 或 CLI 的 `--skill` 过滤本轮可见 skill

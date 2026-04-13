@@ -112,5 +112,5 @@ description: Web research workflow
     assert "<available_skills>" in prompt
     assert "<name>research</name>" in prompt
     assert "<description>Web research workflow</description>" in prompt
-    assert f"<location>{(tmp_path / 'research' / 'SKILL.md').resolve().as_posix()}</location>" in prompt
+    assert "<location>skill://research/SKILL.md</location>" in prompt
     assert "Detailed instructions that should not be injected directly." not in prompt

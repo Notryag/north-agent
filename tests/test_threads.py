@@ -10,6 +10,7 @@ def test_thread_paths_resolve_expected_directories(tmp_path: Path):
     assert paths.workspace_dir == tmp_path / "threads" / "thread-1" / "workspace"
     assert paths.uploads_dir == tmp_path / "threads" / "thread-1" / "uploads"
     assert paths.outputs_dir == tmp_path / "threads" / "thread-1" / "outputs"
+    assert paths.memory_dir == tmp_path / "threads" / "thread-1" / "memory"
 
 
 def test_thread_paths_ensure_creates_directories(tmp_path: Path):
@@ -18,6 +19,7 @@ def test_thread_paths_ensure_creates_directories(tmp_path: Path):
     assert paths.workspace_dir.is_dir()
     assert paths.uploads_dir.is_dir()
     assert paths.outputs_dir.is_dir()
+    assert paths.memory_dir.is_dir()
 
 
 def test_thread_paths_resolve_output_and_artifact_paths(tmp_path: Path):

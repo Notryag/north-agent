@@ -83,6 +83,8 @@ APP_MODEL_NAME=openai:gpt-4o-mini
 APP_THINKING_ENABLED=false
 APP_SYSTEM_PROMPT=You are a concise assistant.
 APP_RECURSION_LIMIT=50
+APP_SKILLS_DIR=skills
+APP_SKILLS=research,writer
 LANGSMITH_TRACING=false
 LANGSMITH_API_KEY=your_langsmith_api_key
 LANGSMITH_PROJECT=deerflow-lite
@@ -97,6 +99,8 @@ APP_MODEL_NAME=openai:stepfun/step-3.5-flash:free
 APP_THINKING_ENABLED=false
 APP_SYSTEM_PROMPT=You are a concise assistant.
 APP_RECURSION_LIMIT=50
+APP_SKILLS_DIR=skills
+APP_SKILLS=research,writer
 LANGSMITH_TRACING=false
 LANGSMITH_API_KEY=your_langsmith_api_key
 LANGSMITH_PROJECT=deerflow-lite
@@ -182,6 +186,7 @@ print(response)
 
 - 基于 `.env` 的配置加载
 - 统一的 `build_agent()` 装配点
+- 本地 skill 发现与装配
 - `AppClient.chat()`
 - `AppClient.stream()`
 - `runtime.py` 统一解析 tools / middlewares / checkpointer
@@ -202,6 +207,59 @@ print(response)
 - `present_files` 与 `artifacts` 真正联动
 - 围绕真实工具语义重建 runtime middleware
 - 更完整的 stream 事件
+
+## Skill 系统
+
+现在已经支持最小本地 skill 系统。默认 skill 目录是项目根下的 `skills/`。
+
+每个 skill 是一个目录，至少包含：
+
+```text
+skills/
+└── research/
+    └── SKILL.md
+```
+
+`SKILL.md` 最小示例：
+
+```md
+---
+name: research
+description: Web research workflow
+tools:
+  - web_search
+  - web_fetch
+  - write_report
+  - present_files
+---
+
+Focus on traceable sources first, then draft the report.
+```
+
+agent 默认拿到的是一个轻量 skill catalog，其中包含 `name`、`description` 和 `location`。`location` 使用资源 URI，例如 `skill://research/SKILL.md`。真正的 `SKILL.md` 正文不会默认注入上下文；当模型决定使用某个 skill 时，再通过内置 `read_file` 工具按这个 URI 懒加载它。
+
+`APP_SKILLS` / CLI `--skill` 的语义是“限制本轮可见 skill 范围”，不是“预先把这些 skill 正文注入 prompt”。
+
+当前 `read_file` 支持这些资源域：
+
+- `skill://<skill-name>/...`
+- `upload://...`
+- `workspace://...`
+- `output://...`
+- `memory://...`
+
+启用方式有两种：
+
+```env
+APP_SKILLS_DIR=skills
+APP_SKILLS=research,writer
+```
+
+或命令行临时启用：
+
+```powershell
+python -m app --skill research --skill writer "调研 LangGraph 的 stream_mode 设计"
+```
 
 ## 下一步建议
 

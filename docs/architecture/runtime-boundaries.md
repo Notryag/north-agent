@@ -48,7 +48,7 @@
 - skill 是 agent 装配层能力，不是 thread state
 - skill 的可见范围属于 runtime scope，默认不写入 `ThreadState`
 - agent 默认看到的是 skill catalog，而不是全部 skill 正文
-- 具体 `SKILL.md` 内容通过 `read_file` 等工具按需读取
+- 具体 `SKILL.md` 内容通过 `read_file` 等工具按资源 URI 按需读取
 - 第一版不承担 marketplace / sandbox / 远程安装职责
 
 ### `app/agent.py`

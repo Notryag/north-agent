@@ -137,30 +137,30 @@ def test_write_report_file_writes_into_thread_outputs(tmp_path: Path):
 
 
 def test_read_text_file_allows_only_configured_roots(tmp_path: Path):
-    allowed_root = tmp_path / "skills"
-    allowed_root.mkdir()
-    readable = allowed_root / "research.md"
+    skills_dir = tmp_path / "skills"
+    readable = skills_dir / "research" / "SKILL.md"
+    readable.parent.mkdir(parents=True)
     readable.write_text("content", encoding="utf-8")
 
     assert read_text_file(
-        str(readable),
-        allowed_roots=(allowed_root.resolve(),),
+        "skill://research/SKILL.md",
+        thread_id="thread-1",
+        skills_dir=skills_dir,
         project_root=tmp_path,
     ) == "content"
 
 
 def test_read_text_file_rejects_paths_outside_allowed_roots(tmp_path: Path):
-    allowed_root = tmp_path / "skills"
-    allowed_root.mkdir()
-    blocked = tmp_path / "outside.md"
-    blocked.write_text("blocked", encoding="utf-8")
+    skills_dir = tmp_path / "skills"
+    skills_dir.mkdir()
 
     try:
         read_text_file(
-            str(blocked),
-            allowed_roots=(allowed_root.resolve(),),
+            "skill://../outside.md",
+            thread_id="thread-1",
+            skills_dir=skills_dir,
             project_root=tmp_path,
         )
-        assert False, "Expected read_text_file to reject paths outside allowed roots"
+        assert False, "Expected read_text_file to reject escaped resource URIs"
     except ValueError as exc:
-        assert "outside allowed read roots" in str(exc)
+        assert "must not escape" in str(exc)

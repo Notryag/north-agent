@@ -64,5 +64,5 @@ def test_build_agent_injects_skill_catalog_not_skill_body(monkeypatch, tmp_path)
     )
 
     assert "<available_skills>" in captured["system_prompt"]
-    assert f"<location>{(skill_dir / 'SKILL.md').resolve().as_posix()}</location>" in captured["system_prompt"]
+    assert "<location>skill://research/SKILL.md</location>" in captured["system_prompt"]
     assert "Detailed body content." not in captured["system_prompt"]

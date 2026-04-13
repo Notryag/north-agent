@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-
 @dataclass(frozen=True, slots=True)
 class SkillSpec:
     name: str
@@ -16,13 +15,9 @@ class SkillSpec:
     def main_file_path(self) -> Path:
         return self.root_dir / "SKILL.md"
 
-    def get_container_file_path(self, container_base_path: Path) -> str:
-        resolved_path = self.main_file_path.resolve()
-        try:
-            relative_path = resolved_path.relative_to(container_base_path.resolve())
-            return (container_base_path.resolve() / relative_path).as_posix()
-        except ValueError:
-            return resolved_path.as_posix()
+    @property
+    def resource_uri(self) -> str:
+        return f"skill://{self.name}/SKILL.md"
 
 
 def _split_frontmatter(text: str, source: Path) -> tuple[dict[str, Any], str]:
@@ -177,7 +172,7 @@ def load_skill_body(skill: SkillSpec) -> str:
     return body
 
 
-def compose_skill_system(skills: list[SkillSpec], *, container_base_path: Path) -> str:
+def compose_skill_system(skills: list[SkillSpec]) -> str:
     if not skills:
         return ""
 
@@ -186,7 +181,7 @@ def compose_skill_system(skills: list[SkillSpec], *, container_base_path: Path) 
             "    <skill>\n"
             f"        <name>{skill.name}</name>\n"
             f"        <description>{skill.description}</description>\n"
-            f"        <location>{skill.get_container_file_path(container_base_path)}</location>\n"
+            f"        <location>{skill.resource_uri}</location>\n"
             "    </skill>"
         )
         for skill in skills
@@ -198,18 +193,17 @@ def compose_skill_system(skills: list[SkillSpec], *, container_base_path: Path) 
         "practices, frameworks, and references to additional resources.\n\n"
         "**Progressive Loading Pattern:**\n"
         "1. When a user query matches a skill's use case, immediately call `read_file` on the skill's main file "
-        "using the path attribute provided in the skill tag below\n"
+        "using the location attribute provided in the skill tag below\n"
         "2. Read and understand the skill's workflow and instructions\n"
         "3. The skill file contains references to external resources under the same folder\n"
         "4. Load referenced resources only when needed during execution\n"
         "5. Follow the skill's instructions precisely\n\n"
-        f"**Skills are located at:** {container_base_path.resolve().as_posix()}\n\n"
         f"<available_skills>\n{skill_items}\n</available_skills>\n\n"
         "</skill_system>"
     )
 
 
-def compose_system_prompt(base_prompt: str, skills: list[SkillSpec], *, container_base_path: Path) -> str:
-    skill_system = compose_skill_system(skills, container_base_path=container_base_path)
+def compose_system_prompt(base_prompt: str, skills: list[SkillSpec]) -> str:
+    skill_system = compose_skill_system(skills)
     sections = [base_prompt.strip(), skill_system]
     return "\n\n".join(section for section in sections if section)

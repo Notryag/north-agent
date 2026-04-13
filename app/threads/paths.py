@@ -38,6 +38,10 @@ class ThreadPaths:
     def outputs_dir(self) -> Path:
         return self.thread_dir / "outputs"
 
+    @property
+    def memory_dir(self) -> Path:
+        return self.thread_dir / "memory"
+
     def resolve_output_path(self, filename: str | Path) -> Path:
         relative_path = _normalize_relative_path(filename)
         output_path = self.outputs_dir / relative_path
@@ -66,4 +70,5 @@ class ThreadPaths:
         self.workspace_dir.mkdir(parents=True, exist_ok=True)
         self.uploads_dir.mkdir(parents=True, exist_ok=True)
         self.outputs_dir.mkdir(parents=True, exist_ok=True)
+        self.memory_dir.mkdir(parents=True, exist_ok=True)
         return self
