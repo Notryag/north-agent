@@ -40,14 +40,16 @@
 ### `app/skills/*`
 
 - 从本地 skill 目录发现 skill 定义
-- 读取 skill prompt
-- 把 skill 转成 prompt 片段和工具约束
+- 读取 frontmatter，生成 skill catalog
+- 提供 `SKILL.md` 正文的按需加载入口
 
 说明：
 
 - skill 是 agent 装配层能力，不是 thread state
-- skill 的选择属于 runtime scope，默认不写入 `ThreadState`
-- 第一版只负责 prompt 和工具白名单，不承担 marketplace / sandbox / 远程安装职责
+- skill 的可见范围属于 runtime scope，默认不写入 `ThreadState`
+- agent 默认看到的是 skill catalog，而不是全部 skill 正文
+- 具体 `SKILL.md` 内容通过 `read_file` 等工具按需读取
+- 第一版不承担 marketplace / sandbox / 远程安装职责
 
 ### `app/agent.py`
 

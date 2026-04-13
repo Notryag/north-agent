@@ -5,6 +5,7 @@ from app.runtime import get_tools
 from app.tools import get_builtin_tools
 from app.tools.builtin.fetch import _extract_page_content
 from app.tools.builtin.present_files import present_file_listing, resolve_artifact_paths
+from app.tools.builtin.read_file import read_text_file
 from app.tools.builtin.search import _parse_search_results
 from app.tools.builtin.write_report import write_report_file
 
@@ -14,6 +15,7 @@ def test_builtin_tool_registry_contains_expected_tools():
 
     assert [tool.name for tool in tools] == [
         "ask_clarification",
+        "read_file",
         "web_search",
         "web_fetch",
         "write_report",
@@ -26,6 +28,7 @@ def test_runtime_returns_builtin_tools():
 
     assert [tool.name for tool in tools] == [
         "ask_clarification",
+        "read_file",
         "web_search",
         "web_fetch",
         "write_report",
@@ -36,6 +39,9 @@ def test_runtime_returns_builtin_tools():
 def test_runtime_injected_tool_schemas_are_json_serializable():
     tools = {tool.name: tool for tool in get_builtin_tools()}
 
+    assert tools["read_file"].args == {
+        "path": {"title": "Path", "type": "string"},
+    }
     assert tools["write_report"].args == {
         "content": {"title": "Content", "type": "string"},
         "filename": {"default": "report.md", "title": "Filename", "type": "string"},
@@ -128,3 +134,33 @@ def test_write_report_file_writes_into_thread_outputs(tmp_path: Path):
 
     assert output_path == tmp_path / "threads" / "thread-1" / "outputs" / "report.md"
     assert output_path.read_text(encoding="utf-8") == "# Report\n\nContent"
+
+
+def test_read_text_file_allows_only_configured_roots(tmp_path: Path):
+    allowed_root = tmp_path / "skills"
+    allowed_root.mkdir()
+    readable = allowed_root / "research.md"
+    readable.write_text("content", encoding="utf-8")
+
+    assert read_text_file(
+        str(readable),
+        allowed_roots=(allowed_root.resolve(),),
+        project_root=tmp_path,
+    ) == "content"
+
+
+def test_read_text_file_rejects_paths_outside_allowed_roots(tmp_path: Path):
+    allowed_root = tmp_path / "skills"
+    allowed_root.mkdir()
+    blocked = tmp_path / "outside.md"
+    blocked.write_text("blocked", encoding="utf-8")
+
+    try:
+        read_text_file(
+            str(blocked),
+            allowed_roots=(allowed_root.resolve(),),
+            project_root=tmp_path,
+        )
+        assert False, "Expected read_text_file to reject paths outside allowed roots"
+    except ValueError as exc:
+        assert "outside allowed read roots" in str(exc)

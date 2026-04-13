@@ -62,7 +62,10 @@ def test_stream_passes_thread_context_and_config():
     events = list(client.stream("hello", thread_id="thread-ctx"))
 
     assert stub_agent.calls[0]["config"]["configurable"]["thread_id"] == "thread-ctx"
-    assert stub_agent.calls[0]["context"] == {"thread_id": "thread-ctx"}
+    assert stub_agent.calls[0]["context"] == {
+        "thread_id": "thread-ctx",
+        "skills_dir": str(client.config.skills_dir.resolve()),
+    }
     assert stub_agent.calls[0]["stream_mode"] == "values"
     assert events[-1].type == "end"
 

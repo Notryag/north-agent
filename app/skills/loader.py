@@ -10,8 +10,19 @@ class SkillSpec:
     name: str
     root_dir: Path
     description: str = ""
-    prompt: str = ""
     tools: tuple[str, ...] | None = None
+
+    @property
+    def main_file_path(self) -> Path:
+        return self.root_dir / "SKILL.md"
+
+    def get_container_file_path(self, container_base_path: Path) -> str:
+        resolved_path = self.main_file_path.resolve()
+        try:
+            relative_path = resolved_path.relative_to(container_base_path.resolve())
+            return (container_base_path.resolve() / relative_path).as_posix()
+        except ValueError:
+            return resolved_path.as_posix()
 
 
 def _split_frontmatter(text: str, source: Path) -> tuple[dict[str, Any], str]:
@@ -106,7 +117,7 @@ def load_skill_from_dir(root_dir: Path) -> SkillSpec:
     if not skill_file.exists():
         raise ValueError(f"Skill definition not found: {skill_file}")
 
-    payload, prompt = _split_frontmatter(skill_file.read_text(encoding="utf-8"), skill_file)
+    payload, _body = _split_frontmatter(skill_file.read_text(encoding="utf-8"), skill_file)
 
     raw_name = payload.get("name", root_dir.name)
     if not isinstance(raw_name, str) or not raw_name.strip():
@@ -120,7 +131,6 @@ def load_skill_from_dir(root_dir: Path) -> SkillSpec:
         name=raw_name.strip(),
         root_dir=root_dir,
         description=raw_description.strip(),
-        prompt=prompt,
         tools=_parse_tools(skill_file, payload),
     )
 
@@ -162,24 +172,44 @@ def load_skills(skills_dir: Path, names: tuple[str, ...] | list[str]) -> list[Sk
     return [discovered[name] for name in normalized_names]
 
 
-def compose_system_prompt(base_prompt: str, skills: list[SkillSpec]) -> str:
-    sections = [base_prompt.strip()]
-    for skill in skills:
-        if not skill.prompt:
-            continue
-        sections.append(f"[skill:{skill.name}]\n{skill.prompt}")
+def load_skill_body(skill: SkillSpec) -> str:
+    _payload, body = _split_frontmatter(skill.main_file_path.read_text(encoding="utf-8"), skill.main_file_path)
+    return body
+
+
+def compose_skill_system(skills: list[SkillSpec], *, container_base_path: Path) -> str:
+    if not skills:
+        return ""
+
+    skill_items = "\n".join(
+        (
+            "    <skill>\n"
+            f"        <name>{skill.name}</name>\n"
+            f"        <description>{skill.description}</description>\n"
+            f"        <location>{skill.get_container_file_path(container_base_path)}</location>\n"
+            "    </skill>"
+        )
+        for skill in skills
+    )
+
+    return (
+        "<skill_system>\n"
+        "You have access to skills that provide optimized workflows for specific tasks. Each skill contains best "
+        "practices, frameworks, and references to additional resources.\n\n"
+        "**Progressive Loading Pattern:**\n"
+        "1. When a user query matches a skill's use case, immediately call `read_file` on the skill's main file "
+        "using the path attribute provided in the skill tag below\n"
+        "2. Read and understand the skill's workflow and instructions\n"
+        "3. The skill file contains references to external resources under the same folder\n"
+        "4. Load referenced resources only when needed during execution\n"
+        "5. Follow the skill's instructions precisely\n\n"
+        f"**Skills are located at:** {container_base_path.resolve().as_posix()}\n\n"
+        f"<available_skills>\n{skill_items}\n</available_skills>\n\n"
+        "</skill_system>"
+    )
+
+
+def compose_system_prompt(base_prompt: str, skills: list[SkillSpec], *, container_base_path: Path) -> str:
+    skill_system = compose_skill_system(skills, container_base_path=container_base_path)
+    sections = [base_prompt.strip(), skill_system]
     return "\n\n".join(section for section in sections if section)
-
-
-def filter_tools_by_skills(all_tools: list, skills: list[SkillSpec]) -> list:
-    constrained_names = [skill.tools for skill in skills if skill.tools is not None]
-    if not constrained_names:
-        return list(all_tools)
-
-    allowed_names = {name for names in constrained_names for name in names}
-    available_names = {tool.name for tool in all_tools}
-    unknown_names = sorted(name for name in allowed_names if name not in available_names)
-    if unknown_names:
-        raise ValueError(f"Skill requested unknown tools: {', '.join(unknown_names)}")
-
-    return [tool for tool in all_tools if tool.name in allowed_names]

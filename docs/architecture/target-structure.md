@@ -50,8 +50,8 @@ app/
 ### `app/skills/`
 
 - skill 发现与加载
-- skill prompt 片段组合
-- skill 到工具白名单的约束映射
+- skill catalog 生成
+- `SKILL.md` 正文按需读取入口
 
 ### `app/agents/`
 

@@ -1,12 +1,12 @@
-import pytest
+from pathlib import Path
 
 from app.config import AppConfig
-from app.runtime import get_skills, get_system_prompt, get_tools
-from app.skills import discover_skills
+from app.runtime import get_skills, get_system_prompt
+from app.skills import discover_skills, load_skill_body
 
 
 def write_skill(
-    tmp_path,
+    tmp_path: Path,
     dir_name: str,
     *,
     frontmatter: str = "",
@@ -26,7 +26,7 @@ def write_skill(
     return skill_dir
 
 
-def test_discover_skills_loads_frontmatter_and_prompt(tmp_path):
+def test_discover_skills_loads_frontmatter_only(tmp_path):
     write_skill(
         tmp_path,
         "research",
@@ -45,108 +45,72 @@ tools:
 
     assert list(discovered) == ["research"]
     assert discovered["research"].description == "Web research workflow"
-    assert discovered["research"].prompt == "Focus on traceable sources."
     assert discovered["research"].tools == ("web_search", "web_fetch", "write_report")
+    assert not hasattr(discovered["research"], "prompt")
 
 
-def test_runtime_composes_prompt_and_filters_tools(tmp_path):
+def test_load_skill_body_reads_main_markdown_body(tmp_path):
+    write_skill(
+        tmp_path,
+        "research",
+        frontmatter="name: research",
+        prompt="Focus on traceable sources.",
+    )
+    skill = discover_skills(tmp_path)["research"]
+
+    body = load_skill_body(skill)
+
+    assert body == "Focus on traceable sources."
+
+
+def test_runtime_returns_all_discovered_skills_by_default(tmp_path):
+    write_skill(tmp_path, "research", frontmatter="name: research")
+    write_skill(tmp_path, "writer", frontmatter="name: writer")
+
+    config = AppConfig(
+        model_name="openai:gpt-4o-mini",
+        skills_dir=tmp_path,
+    )
+
+    skills = get_skills(config)
+
+    assert [skill.name for skill in skills] == ["research", "writer"]
+
+
+def test_runtime_filters_available_skills_when_requested(tmp_path):
+    write_skill(tmp_path, "research", frontmatter="name: research")
+    write_skill(tmp_path, "writer", frontmatter="name: writer")
+    config = AppConfig(
+        model_name="openai:gpt-4o-mini",
+        skills_dir=tmp_path,
+    )
+
+    skills = get_skills(config, skill_names=("writer",))
+
+    assert [skill.name for skill in skills] == ["writer"]
+
+
+def test_system_prompt_injects_skill_catalog_not_body(tmp_path):
     write_skill(
         tmp_path,
         "research",
         frontmatter="""
 name: research
-tools:
-  - web_search
-  - web_fetch
-  - write_report
+description: Web research workflow
 """,
-        prompt="Cite pages before drafting the report.",
+        prompt="Detailed instructions that should not be injected directly.",
     )
-
     config = AppConfig(
         model_name="openai:gpt-4o-mini",
         system_prompt="Base prompt.",
         skills_dir=tmp_path,
-        enabled_skills=("research",),
-    )
-
-    skills = get_skills(config)
-    prompt = get_system_prompt(config, skills=skills)
-    tools = get_tools(config, skills=skills)
-
-    assert "[skill:research]" in prompt
-    assert "Cite pages before drafting the report." in prompt
-    assert [tool.name for tool in tools] == ["web_search", "web_fetch", "write_report"]
-
-
-def test_get_system_prompt_loads_all_discovered_skills_by_default(tmp_path):
-    write_skill(
-        tmp_path,
-        "research",
-        frontmatter="name: research",
-        prompt="Research prompt.",
-    )
-    write_skill(
-        tmp_path,
-        "writer",
-        frontmatter="name: writer",
-        prompt="Writer prompt.",
-    )
-
-    config = AppConfig(
-        model_name="openai:gpt-4o-mini",
-        system_prompt="Base prompt.",
-        skills_dir=tmp_path,
-        enabled_skills=("research",),
     )
 
     prompt = get_system_prompt(config)
 
-    assert "[skill:research]" in prompt
-    assert "[skill:writer]" in prompt
-
-
-def test_runtime_keeps_full_toolset_for_prompt_only_skill(tmp_path):
-    write_skill(
-        tmp_path,
-        "writer",
-        frontmatter="name: writer",
-        prompt="Prefer concise markdown sections.",
-    )
-
-    config = AppConfig(
-        model_name="openai:gpt-4o-mini",
-        skills_dir=tmp_path,
-        enabled_skills=("writer",),
-    )
-
-    tools = get_tools(config)
-
-    assert [tool.name for tool in tools] == [
-        "ask_clarification",
-        "web_search",
-        "web_fetch",
-        "write_report",
-        "present_files",
-    ]
-
-
-def test_runtime_rejects_unknown_tool_requested_by_skill(tmp_path):
-    write_skill(
-        tmp_path,
-        "broken",
-        frontmatter="""
-name: broken
-tools:
-  - missing_tool
-""",
-        prompt="This should fail.",
-    )
-    config = AppConfig(
-        model_name="openai:gpt-4o-mini",
-        skills_dir=tmp_path,
-        enabled_skills=("broken",),
-    )
-
-    with pytest.raises(ValueError, match="missing_tool"):
-        get_tools(config)
+    assert "<skill_system>" in prompt
+    assert "<available_skills>" in prompt
+    assert "<name>research</name>" in prompt
+    assert "<description>Web research workflow</description>" in prompt
+    assert f"<location>{(tmp_path / 'research' / 'SKILL.md').resolve().as_posix()}</location>" in prompt
+    assert "Detailed instructions that should not be injected directly." not in prompt

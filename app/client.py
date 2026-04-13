@@ -118,7 +118,10 @@ class AppClient:
         seen_ai_ids: set[str] = set()
         seen_tool_ids: set[tuple[str | None, str | None, str]] = set()
         latest_artifacts: tuple[str, ...] = ()
-        context = {"thread_id": thread_id}
+        context = {
+            "thread_id": thread_id,
+            "skills_dir": str(self.config.skills_dir.resolve()),
+        }
 
         try:
             for chunk in agent.stream(state, config=config, context=context, stream_mode="values"):

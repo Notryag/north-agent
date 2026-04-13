@@ -126,7 +126,7 @@
 
 - [x] T9. 引入最小 skill 系统
   目标：
-  让 runtime 能按本地 skill 定义组合 prompt，并限制可见工具，为后续文件分析、代码执行、报告生成等能力提供可复用装配层。
+  让 runtime 能向 agent 暴露可发现的 skill catalog，并通过懒加载读取具体 skill 内容，为后续文件分析、代码执行、报告生成等能力提供可复用装配层。
   关联文件：
   `app/config.py`
   `app/runtime.py`
@@ -135,14 +135,17 @@
   `app/skills/__init__.py`
   `app/skills/loader.py`
   `app/cli.py`
+  `app/tools/builtin/read_file.py`
   `tests/test_skills.py`
   `tests/test_app.py`
+  `tests/test_agent.py`
   `tests/test_config.py`
+  `tests/test_tools.py`
   `docs/architecture/runtime-boundaries.md`
   `docs/architecture/target-structure.md`
   `readme.md`
   完成标准：
-  支持本地 `skills/<name>/SKILL.md`；可通过配置或 CLI 启用 skill；skill 能影响 system prompt 与工具集合；默认未启用时不改变现有闭环。
+  支持本地 `skills/<name>/SKILL.md`；agent 默认只拿到 skill catalog；具体正文通过 `read_file` 按需读取；可通过配置或 CLI 过滤本轮可见 skill；默认不把 skill 正文直接注入上下文。
 
 ## Parked
 
