@@ -32,9 +32,22 @@
 ### `app/runtime.py`
 
 - 组装工具
+- 组装 skill
 - 组装 middleware
 - 组装 checkpointer
 - 组装 state schema
+
+### `app/skills/*`
+
+- 从本地 skill 目录发现 skill 定义
+- 读取 skill prompt
+- 把 skill 转成 prompt 片段和工具约束
+
+说明：
+
+- skill 是 agent 装配层能力，不是 thread state
+- skill 的选择属于 runtime scope，默认不写入 `ThreadState`
+- 第一版只负责 prompt 和工具白名单，不承担 marketplace / sandbox / 远程安装职责
 
 ### `app/agent.py`
 

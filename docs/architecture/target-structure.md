@@ -13,6 +13,9 @@ app/
 ├── config.py
 ├── checkpointer.py
 ├── state.py
+├── skills/
+│   ├── __init__.py
+│   └── loader.py
 ├── models/
 │   ├── __init__.py
 │   └── factory.py
@@ -43,6 +46,12 @@ app/
 - 模型工厂
 - 模型 provider 适配
 - thinking / provider 参数兼容
+
+### `app/skills/`
+
+- skill 发现与加载
+- skill prompt 片段组合
+- skill 到工具白名单的约束映射
 
 ### `app/agents/`
 

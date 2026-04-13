@@ -11,6 +11,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("message", nargs="?", default="用一句话解释什么是 DeerFlow")
     parser.add_argument("--thread-id", dest="thread_id")
     parser.add_argument("--stream", action="store_true", help="Print AI message chunks as they stream.")
+    parser.add_argument(
+        "--skill",
+        dest="skills",
+        action="append",
+        default=None,
+        help="Enable a skill by name. Repeat to combine multiple skills.",
+    )
     return parser
 
 
@@ -21,10 +28,10 @@ def main() -> int:
     client = AppClient(config)
 
     if args.stream:
-        for event in client.stream(args.message, thread_id=args.thread_id):
+        for event in client.stream(args.message, thread_id=args.thread_id, skills=args.skills):
             if event.type == "ai":
                 print(event.data["content"])
         return 0
 
-    print(client.chat(args.message, thread_id=args.thread_id))
+    print(client.chat(args.message, thread_id=args.thread_id, skills=args.skills))
     return 0

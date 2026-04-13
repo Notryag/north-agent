@@ -183,3 +183,28 @@ def test_stream_emits_error_event_before_reraising():
         assert False, "Expected RuntimeError to be re-raised"
     except RuntimeError as exc:
         assert str(exc) == "boom"
+
+
+def test_client_builds_distinct_agents_for_skill_sets(monkeypatch):
+    calls = []
+
+    class StubAgent:
+        def __init__(self, label):
+            self.label = label
+
+        def stream(self, state, config=None, context=None, stream_mode=None):
+            yield {"messages": [state["messages"][0], AIMessage(content=self.label, id=f"ai-{self.label}")]}
+
+    def fake_build_agent(config, *, checkpointer=None, skills=None):
+        calls.append(tuple(skills or ()))
+        return StubAgent(label=",".join(skills or ()) or "default")
+
+    monkeypatch.setattr("app.client.build_agent", fake_build_agent)
+
+    client = AppClient(AppConfig(model_name="openai:gpt-4o-mini"))
+
+    assert client.chat("hello") == "default"
+    assert client.chat("hello", skills=["research"]) == "research"
+    assert client.chat("hello", skills=["research"]) == "research"
+    assert client.chat("hello", skills=["writer"]) == "writer"
+    assert calls == [(), ("research",), ("writer",)]

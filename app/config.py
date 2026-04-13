@@ -31,12 +31,26 @@ def _get_int(name: str, default: int) -> int:
     return int(value)
 
 
+def _get_csv(name: str) -> tuple[str, ...]:
+    value = os.getenv(name)
+    if value is None:
+        return ()
+    items: list[str] = []
+    for raw in value.split(","):
+        item = raw.strip()
+        if item and item not in items:
+            items.append(item)
+    return tuple(items)
+
+
 @dataclass(slots=True)
 class AppConfig:
     model_name: str
     thinking_enabled: bool = False
     system_prompt: str = "You are a helpful assistant."
     recursion_limit: int = 50
+    skills_dir: Path = PROJECT_ROOT / "skills"
+    enabled_skills: tuple[str, ...] = ()
 
     @classmethod
     def from_env(cls) -> "AppConfig":
@@ -46,6 +60,8 @@ class AppConfig:
             thinking_enabled=_get_bool("APP_THINKING_ENABLED", False),
             system_prompt=os.getenv("APP_SYSTEM_PROMPT", "You are a helpful assistant."),
             recursion_limit=_get_int("APP_RECURSION_LIMIT", 50),
+            skills_dir=Path(os.getenv("APP_SKILLS_DIR", PROJECT_ROOT / "skills")),
+            enabled_skills=_get_csv("APP_SKILLS"),
         )
 
     def validate(self) -> None:
@@ -55,3 +71,7 @@ class AppConfig:
             raise RuntimeError("OPENAI_API_KEY is not set. Add it to the project .env file before running the app.")
         if _get_bool("LANGSMITH_TRACING", False) and not os.getenv("LANGSMITH_API_KEY"):
             raise RuntimeError("LANGSMITH_API_KEY is not set. Add it to the project .env file or disable LANGSMITH_TRACING.")
+        if self.enabled_skills and not self.skills_dir.exists():
+            raise RuntimeError(
+                f"APP_SKILLS requested {', '.join(self.enabled_skills)} but skills directory does not exist: {self.skills_dir}"
+            )

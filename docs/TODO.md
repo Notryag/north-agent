@@ -22,6 +22,9 @@
 - 做 runtime 保护：
   看 `T8`
 
+- 做 skill 系统：
+  看 `T9`
+
 ## 使用规则
 
 - `[ ]` 未完成，属于当前或近期应做任务
@@ -118,6 +121,28 @@
   `tests/test_middlewares.py`
   完成标准：
   行为围绕真实工具失败、tool loop、clarification 恢复设计；确认语义成立后再默认启用。
+
+### P2 下一阶段基础设施
+
+- [x] T9. 引入最小 skill 系统
+  目标：
+  让 runtime 能按本地 skill 定义组合 prompt，并限制可见工具，为后续文件分析、代码执行、报告生成等能力提供可复用装配层。
+  关联文件：
+  `app/config.py`
+  `app/runtime.py`
+  `app/agent.py`
+  `app/client.py`
+  `app/skills/__init__.py`
+  `app/skills/loader.py`
+  `app/cli.py`
+  `tests/test_skills.py`
+  `tests/test_app.py`
+  `tests/test_config.py`
+  `docs/architecture/runtime-boundaries.md`
+  `docs/architecture/target-structure.md`
+  `readme.md`
+  完成标准：
+  支持本地 `skills/<name>/skill.json` + `prompt.md`；可通过配置或 CLI 启用 skill；skill 能影响 system prompt 与工具集合；默认未启用时不改变现有闭环。
 
 ## Parked
 

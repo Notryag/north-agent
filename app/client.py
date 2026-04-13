@@ -50,11 +50,27 @@ class AppClient:
         self.config = config
         self.checkpointer = checkpointer
         self._agent = None
+        self._agents: dict[tuple[str, ...], Any] = {}
 
-    def _get_agent(self):
-        if self._agent is None:
-            self._agent = build_agent(self.config, checkpointer=self.checkpointer)
-        return self._agent
+    def _normalize_skills(self, skills: list[str] | tuple[str, ...] | None) -> tuple[str, ...]:
+        raw_items = self.config.enabled_skills if skills is None else tuple(skills)
+        normalized: list[str] = []
+        for raw_item in raw_items:
+            item = raw_item.strip()
+            if item and item not in normalized:
+                normalized.append(item)
+        return tuple(normalized)
+
+    def _get_agent(self, *, skills: list[str] | tuple[str, ...] | None = None):
+        skill_key = self._normalize_skills(skills)
+        if not skill_key and self._agent is not None:
+            return self._agent
+        if skill_key not in self._agents:
+            agent = build_agent(self.config, checkpointer=self.checkpointer, skills=skill_key)
+            self._agents[skill_key] = agent
+            if not skill_key:
+                self._agent = agent
+        return self._agents[skill_key]
 
     def _get_runnable_config(self, thread_id: str) -> RunnableConfig:
         return RunnableConfig(
@@ -86,11 +102,17 @@ class AppClient:
             return ()
         return tuple(item for item in value if isinstance(item, str))
 
-    def stream(self, message: str, *, thread_id: str | None = None) -> Generator[StreamEvent, None, None]:
+    def stream(
+        self,
+        message: str,
+        *,
+        thread_id: str | None = None,
+        skills: list[str] | tuple[str, ...] | None = None,
+    ) -> Generator[StreamEvent, None, None]:
         if thread_id is None:
             thread_id = str(uuid.uuid4())
 
-        agent = self._get_agent()
+        agent = self._get_agent(skills=skills)
         config = self._get_runnable_config(thread_id)
         state = {"messages": [HumanMessage(content=message)]}
         seen_ai_ids: set[str] = set()
@@ -161,11 +183,17 @@ class AppClient:
 
         yield StreamEvent(type="end", data={"thread_id": thread_id, "artifacts": latest_artifacts})
 
-    def chat(self, message: str, *, thread_id: str | None = None) -> ChatResponse:
+    def chat(
+        self,
+        message: str,
+        *,
+        thread_id: str | None = None,
+        skills: list[str] | tuple[str, ...] | None = None,
+    ) -> ChatResponse:
         last_text = ""
         final_thread_id = thread_id
         artifacts: tuple[str, ...] = ()
-        for event in self.stream(message, thread_id=thread_id):
+        for event in self.stream(message, thread_id=thread_id, skills=skills):
             event_thread_id = event.data.get("thread_id")
             if isinstance(event_thread_id, str):
                 final_thread_id = event_thread_id

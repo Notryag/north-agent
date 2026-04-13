@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from langchain.agents import create_agent
 from langchain.chat_models import init_chat_model
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -8,7 +10,9 @@ from .config import AppConfig
 from .runtime import (
     get_checkpointer as resolve_checkpointer,
     get_middlewares as resolve_middlewares,
+    get_skills as resolve_skills,
     get_state_schema,
+    get_system_prompt as resolve_system_prompt,
     get_tools as resolve_tools,
 )
 
@@ -40,12 +44,14 @@ def build_agent(
     tools: list | None = None,
     middlewares=None,
     checkpointer=None,
+    skills: Sequence[str] | None = None,
 ):
     model = create_chat_model(
         name=config.model_name,
         thinking_enabled=config.thinking_enabled,
     )
-    resolved_tools = tools if tools is not None else resolve_tools(config)
+    resolved_skills = resolve_skills(config, skill_names=skills)
+    resolved_tools = tools if tools is not None else resolve_tools(config, skills=resolved_skills)
     if not _supports_tool_binding(model):
         resolved_tools = []
 
@@ -53,7 +59,7 @@ def build_agent(
         model=model,
         tools=resolved_tools,
         middleware=middlewares if middlewares is not None else resolve_middlewares(config),
-        system_prompt=config.system_prompt,
+        system_prompt=resolve_system_prompt(config, skills=resolved_skills),
         state_schema=get_state_schema(),
         checkpointer=checkpointer if checkpointer is not None else resolve_checkpointer(config),
     )
