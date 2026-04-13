@@ -142,7 +142,7 @@
   `docs/architecture/target-structure.md`
   `readme.md`
   完成标准：
-  支持本地 `skills/<name>/skill.json` + `prompt.md`；可通过配置或 CLI 启用 skill；skill 能影响 system prompt 与工具集合；默认未启用时不改变现有闭环。
+  支持本地 `skills/<name>/SKILL.md`；可通过配置或 CLI 启用 skill；skill 能影响 system prompt 与工具集合；默认未启用时不改变现有闭环。
 
 ## Parked
 

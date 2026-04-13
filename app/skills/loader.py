@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -15,33 +14,87 @@ class SkillSpec:
     tools: tuple[str, ...] | None = None
 
 
-def _read_skill_prompt(root_dir: Path, payload: dict[str, Any]) -> str:
-    prompt_file = payload.get("prompt_file", "prompt.md")
-    if prompt_file is None:
-        return ""
-    if not isinstance(prompt_file, str):
-        raise ValueError(f"Invalid prompt_file in {root_dir / 'skill.json'}: expected string or null.")
+def _split_frontmatter(text: str, source: Path) -> tuple[dict[str, Any], str]:
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return {}, text.strip()
 
-    prompt_path = root_dir / prompt_file
-    if not prompt_path.exists():
-        if prompt_file == "prompt.md":
-            return ""
-        raise ValueError(f"Skill prompt file does not exist: {prompt_path}")
-    return prompt_path.read_text(encoding="utf-8").strip()
+    closing_index: int | None = None
+    for index in range(1, len(lines)):
+        if lines[index].strip() == "---":
+            closing_index = index
+            break
+    if closing_index is None:
+        raise ValueError(f"Unclosed frontmatter in {source}")
+
+    metadata_lines = lines[1:closing_index]
+    body = "\n".join(lines[closing_index + 1 :]).strip()
+    return _parse_frontmatter(metadata_lines, source), body
 
 
-def _parse_tools(root_dir: Path, payload: dict[str, Any]) -> tuple[str, ...] | None:
+def _parse_frontmatter(lines: list[str], source: Path) -> dict[str, Any]:
+    payload: dict[str, Any] = {}
+    index = 0
+
+    while index < len(lines):
+        raw_line = lines[index]
+        stripped = raw_line.strip()
+        if not stripped:
+            index += 1
+            continue
+        if ":" not in raw_line:
+            raise ValueError(f"Invalid frontmatter line in {source}: {raw_line}")
+
+        key, raw_value = raw_line.split(":", 1)
+        key = key.strip()
+        value = raw_value.strip()
+
+        if not key:
+            raise ValueError(f"Invalid frontmatter key in {source}: {raw_line}")
+
+        if value:
+            if value.startswith("[") and value.endswith("]"):
+                inner = value[1:-1].strip()
+                items = [item.strip().strip("'\"") for item in inner.split(",") if item.strip()]
+                payload[key] = items
+            else:
+                payload[key] = value
+            index += 1
+            continue
+
+        items: list[str] = []
+        index += 1
+        while index < len(lines):
+            nested = lines[index]
+            nested_stripped = nested.strip()
+            if not nested_stripped:
+                index += 1
+                continue
+            if nested_stripped.startswith("- "):
+                item = nested_stripped[2:].strip()
+                if not item:
+                    raise ValueError(f"Invalid list item in {source}: {nested}")
+                items.append(item)
+                index += 1
+                continue
+            break
+        payload[key] = items
+
+    return payload
+
+
+def _parse_tools(source: Path, payload: dict[str, Any]) -> tuple[str, ...] | None:
     if "tools" not in payload:
         return None
 
     raw_tools = payload["tools"]
     if not isinstance(raw_tools, list):
-        raise ValueError(f"Invalid tools in {root_dir / 'skill.json'}: expected a list of tool names.")
+        raise ValueError(f"Invalid tools in {source}: expected a list of tool names.")
 
     tools: list[str] = []
     for item in raw_tools:
         if not isinstance(item, str) or not item.strip():
-            raise ValueError(f"Invalid tool entry in {root_dir / 'skill.json'}: expected non-empty strings.")
+            raise ValueError(f"Invalid tool entry in {source}: expected non-empty strings.")
         name = item.strip()
         if name not in tools:
             tools.append(name)
@@ -49,13 +102,11 @@ def _parse_tools(root_dir: Path, payload: dict[str, Any]) -> tuple[str, ...] | N
 
 
 def load_skill_from_dir(root_dir: Path) -> SkillSpec:
-    skill_file = root_dir / "skill.json"
+    skill_file = root_dir / "SKILL.md"
     if not skill_file.exists():
         raise ValueError(f"Skill definition not found: {skill_file}")
 
-    payload = json.loads(skill_file.read_text(encoding="utf-8"))
-    if not isinstance(payload, dict):
-        raise ValueError(f"Invalid skill definition in {skill_file}: expected a JSON object.")
+    payload, prompt = _split_frontmatter(skill_file.read_text(encoding="utf-8"), skill_file)
 
     raw_name = payload.get("name", root_dir.name)
     if not isinstance(raw_name, str) or not raw_name.strip():
@@ -69,8 +120,8 @@ def load_skill_from_dir(root_dir: Path) -> SkillSpec:
         name=raw_name.strip(),
         root_dir=root_dir,
         description=raw_description.strip(),
-        prompt=_read_skill_prompt(root_dir, payload),
-        tools=_parse_tools(root_dir, payload),
+        prompt=prompt,
+        tools=_parse_tools(skill_file, payload),
     )
 
 
@@ -87,6 +138,10 @@ def discover_skills(skills_dir: Path) -> dict[str, SkillSpec]:
             raise ValueError(f"Duplicate skill name discovered: {skill.name}")
         discovered[skill.name] = skill
     return discovered
+
+
+def load_all_skills(skills_dir: Path) -> list[SkillSpec]:
+    return list(discover_skills(skills_dir).values())
 
 
 def load_skills(skills_dir: Path, names: tuple[str, ...] | list[str]) -> list[SkillSpec]:

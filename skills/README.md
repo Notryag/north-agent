@@ -7,22 +7,27 @@
 ```text
 skills/
 └── research/
-    ├── skill.json
-    └── prompt.md
+    └── SKILL.md
 ```
 
-`skill.json` 示例：
+`SKILL.md` 示例：
 
-```json
-{
-  "name": "research",
-  "description": "Web research workflow",
-  "tools": ["web_search", "web_fetch", "write_report", "present_files"]
-}
+```md
+---
+name: research
+description: Web research workflow
+tools:
+  - web_search
+  - web_fetch
+  - write_report
+  - present_files
+---
+
+Focus on traceable sources first, then draft the report.
 ```
 
 说明：
 
-- `prompt.md` 可选；存在时会被拼进最终 `system_prompt`
-- `tools` 可选；省略时不限制工具，填写后会按名称过滤工具集合
+- `SKILL.md` 正文会被拼进最终 `system_prompt`
+- frontmatter 里的 `tools` 可选；省略时不限制工具，填写后会按名称过滤工具集合
 - 通过 `.env` 中的 `APP_SKILLS` 或 CLI 的 `--skill` 启用
