@@ -6,6 +6,18 @@ from .client import AppClient
 from .config import AppConfig
 
 
+def format_artifacts(artifacts: tuple[str, ...]) -> str:
+    if not artifacts:
+        return ""
+    return "\n".join(["Artifacts:", *(f"- {artifact}" for artifact in artifacts)])
+
+
+def print_artifacts(artifacts: tuple[str, ...]) -> None:
+    formatted_artifacts = format_artifacts(artifacts)
+    if formatted_artifacts:
+        print(formatted_artifacts)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run the DeerFlow-lite demo app.")
     parser.add_argument("message", nargs="?", default="用一句话解释什么是 DeerFlow")
@@ -35,10 +47,17 @@ def main() -> int:
     client = AppClient(config)
 
     if args.stream:
+        artifacts: tuple[str, ...] = ()
         for event in client.stream(args.message, thread_id=args.thread_id, skills=args.skills, files=args.files):
             if event.type == "ai":
                 print(event.data["content"])
+            event_artifacts = event.data.get("artifacts")
+            if isinstance(event_artifacts, tuple):
+                artifacts = event_artifacts
+        print_artifacts(artifacts)
         return 0
 
-    print(client.chat(args.message, thread_id=args.thread_id, skills=args.skills, files=args.files))
+    response = client.chat(args.message, thread_id=args.thread_id, skills=args.skills, files=args.files)
+    print(response)
+    print_artifacts(response.artifacts)
     return 0

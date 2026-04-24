@@ -1,3 +1,5 @@
+import uuid
+
 from langchain_core.language_models.fake_chat_models import FakeListChatModel
 from langchain_core.messages import AIMessage, ToolMessage
 
@@ -73,6 +75,7 @@ def test_stream_passes_thread_context_and_config():
 def test_stream_uploads_files_into_initial_state(tmp_path):
     source = tmp_path / "brief.md"
     source.write_text("brief content", encoding="utf-8")
+    thread_id = f"thread-upload-{uuid.uuid4().hex}"
 
     class StubAgent:
         def __init__(self):
@@ -86,13 +89,13 @@ def test_stream_uploads_files_into_initial_state(tmp_path):
     stub_agent = StubAgent()
     client._agent = stub_agent
 
-    events = list(client.stream("analyze this", thread_id="thread-upload", files=[source]))
+    events = list(client.stream("analyze this", thread_id=thread_id, files=[source]))
 
     assert stub_agent.state["uploaded_files"] == [
         {
             "name": "brief.md",
             "uri": "upload://brief.md",
-            "path": ".deerflow/threads/thread-upload/uploads/brief.md",
+            "path": f".deerflow/threads/{thread_id}/uploads/brief.md",
             "size": len("brief content"),
         }
     ]

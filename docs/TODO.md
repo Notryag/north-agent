@@ -88,6 +88,17 @@
   完成标准：
   `AppClient.chat()` / `AppClient.stream()` 支持 `files=`；CLI 支持 `--file`；上传文件落到 `.deerflow/threads/<thread_id>/uploads/`；初始 state 含 `uploaded_files`，消息中包含可读的 `upload://` URI。
 
+- [x] T12. 让 CLI 显示 artifact 输出
+  目标：
+  让命令行入口能直接看到 `chat()` / `stream()` 返回的 artifact 列表，避免报告已经生成但用户不可见。
+  关联文件：
+  `app/cli.py`
+  `tests/test_cli.py`
+  `docs/TODO.md`
+  `readme.md`
+  完成标准：
+  非流式响应打印 AI 文本后打印 `Artifacts:`；流式模式结束后打印最终 artifact 列表；测试覆盖空 artifact、非流式 artifact 和流式最终 artifact。
+
 ### P0 主线闭环
 
 - [x] T4. 改造 `present_files`，真正联动 `artifacts`

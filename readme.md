@@ -163,6 +163,8 @@ python -m app "用一句话解释什么是 DeerFlow"
 python -m app --stream "用一句话解释什么是 DeerFlow"
 ```
 
+当本轮生成报告或其他输出文件时，CLI 会在回答后打印 `Artifacts:` 列表。
+
 如果要让 agent 分析本地文件，可以先上传到当前 thread：
 
 ```powershell
