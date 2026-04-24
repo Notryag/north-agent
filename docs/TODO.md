@@ -99,6 +99,17 @@
   完成标准：
   非流式响应打印 AI 文本后打印 `Artifacts:`；流式模式结束后打印最终 artifact 列表；测试覆盖空 artifact、非流式 artifact 和流式最终 artifact。
 
+- [x] T14. 让 CLI 可选显示流式事件
+  目标：
+  让调研和文件分析任务在命令行里能看到工具调用与状态更新摘要，同时保持默认输出安静。
+  关联文件：
+  `app/cli.py`
+  `tests/test_cli.py`
+  `docs/TODO.md`
+  `readme.md`
+  完成标准：
+  `--stream --show-events` 打印 tool / values / error 事件摘要；默认 `--stream` 仍只打印 AI 文本和最终 artifacts；测试覆盖事件格式化与 CLI 输出。
+
 ### P0 主线闭环
 
 - [x] T4. 改造 `present_files`，真正联动 `artifacts`
