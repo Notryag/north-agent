@@ -4,6 +4,7 @@ from app.config import AppConfig
 from app.runtime import get_tools
 from app.tools import get_builtin_tools
 from app.tools.builtin.fetch import _extract_page_content
+from app.tools.builtin.list_files import format_file_listing, list_thread_file_uris
 from app.tools.builtin.present_files import present_file_listing, resolve_artifact_paths
 from app.tools.builtin.read_file import read_text_file
 from app.tools.builtin.search import _parse_search_results
@@ -15,6 +16,7 @@ def test_builtin_tool_registry_contains_expected_tools():
 
     assert [tool.name for tool in tools] == [
         "ask_clarification",
+        "list_files",
         "read_file",
         "web_search",
         "web_fetch",
@@ -28,6 +30,7 @@ def test_runtime_returns_builtin_tools():
 
     assert [tool.name for tool in tools] == [
         "ask_clarification",
+        "list_files",
         "read_file",
         "web_search",
         "web_fetch",
@@ -41,6 +44,9 @@ def test_runtime_injected_tool_schemas_are_json_serializable():
 
     assert tools["read_file"].args == {
         "path": {"title": "Path", "type": "string"},
+    }
+    assert tools["list_files"].args == {
+        "domain": {"default": "all", "title": "Domain", "type": "string"},
     }
     assert tools["write_report"].args == {
         "content": {"title": "Content", "type": "string"},
@@ -78,6 +84,42 @@ def test_resolve_artifact_paths_uses_thread_outputs_directory(tmp_path: Path):
         "threads/thread-1/outputs/report.md",
         "threads/thread-1/outputs/summary.txt",
     ]
+
+
+def test_list_thread_file_uris_returns_thread_resource_uris(tmp_path: Path):
+    thread_root = tmp_path / "threads" / "thread-1"
+    (thread_root / "uploads").mkdir(parents=True)
+    (thread_root / "workspace" / "notes").mkdir(parents=True)
+    (thread_root / "outputs").mkdir(parents=True)
+    (thread_root / "memory").mkdir(parents=True)
+    (thread_root / "uploads" / "brief.md").write_text("brief", encoding="utf-8")
+    (thread_root / "workspace" / "notes" / "analysis.md").write_text("analysis", encoding="utf-8")
+    (thread_root / "outputs" / "report.md").write_text("report", encoding="utf-8")
+
+    uris = list_thread_file_uris(thread_id="thread-1", base_dir=tmp_path)
+
+    assert uris == [
+        "upload://brief.md",
+        "workspace://notes/analysis.md",
+        "output://report.md",
+    ]
+
+
+def test_list_thread_file_uris_can_filter_domain(tmp_path: Path):
+    thread_root = tmp_path / "threads" / "thread-1"
+    (thread_root / "uploads").mkdir(parents=True)
+    (thread_root / "outputs").mkdir(parents=True)
+    (thread_root / "uploads" / "brief.md").write_text("brief", encoding="utf-8")
+    (thread_root / "outputs" / "report.md").write_text("report", encoding="utf-8")
+
+    uris = list_thread_file_uris(thread_id="thread-1", domain="output", base_dir=tmp_path)
+
+    assert uris == ["output://report.md"]
+
+
+def test_format_file_listing_handles_empty_and_present_files():
+    assert format_file_listing([]) == "No files found."
+    assert format_file_listing(["upload://brief.md"]) == "Files:\n- upload://brief.md"
 
 
 def test_parse_search_results_extracts_titles_urls_and_snippets():

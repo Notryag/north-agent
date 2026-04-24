@@ -119,6 +119,7 @@ description: Web research workflow
 def test_project_default_skills_support_research_report_loop():
     skills = discover_skills(PROJECT_ROOT / "skills")
 
+    assert skills["file-analysis"].tools == ("list_files", "read_file", "write_report", "present_files")
     assert [name for name in skills if name in {"research", "writer"}] == ["research", "writer"]
     assert skills["research"].tools == ("web_search", "web_fetch", "write_report", "present_files")
     assert skills["writer"].tools == ("write_report", "present_files")
@@ -133,9 +134,12 @@ def test_project_default_prompt_exposes_skill_catalog_not_bodies():
 
     prompt = get_system_prompt(config)
 
+    assert "<name>file-analysis</name>" in prompt
+    assert "<location>skill://file-analysis/SKILL.md</location>" in prompt
     assert "<name>research</name>" in prompt
     assert "<location>skill://research/SKILL.md</location>" in prompt
     assert "<name>writer</name>" in prompt
     assert "<location>skill://writer/SKILL.md</location>" in prompt
+    assert "Use this skill when the user asks to inspect" not in prompt
     assert "Use this skill when the user asks for web research" not in prompt
     assert "Use this skill when the user asks to draft" not in prompt

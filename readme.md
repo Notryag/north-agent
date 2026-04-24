@@ -208,11 +208,13 @@ print(response)
 
 - `web_search`
 - `web_fetch`
+- `list_files`
+- `read_file`
 - `write_report`
 - `present_files` 与 `artifacts` 真正联动
 - 围绕真实工具语义重建的 runtime middleware
 - 能暴露工具、状态、artifact 的 stream 事件
-- `research` / `writer` 本地 skill
+- `file-analysis` / `research` / `writer` 本地 skill
 
 ## Skill 系统
 

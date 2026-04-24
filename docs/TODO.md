@@ -58,6 +58,22 @@
 
 ## Active TODO
 
+### P3 下一阶段文件分析
+
+- [x] T10. 引入线程文件发现入口
+  目标：
+  让 agent 能发现当前 thread 内可读取的上传、工作区、输出和记忆文件，为文件分析闭环提供入口。
+  关联文件：
+  `app/tools/builtin/list_files.py`
+  `app/tools/builtin/__init__.py`
+  `app/tools/registry.py`
+  `skills/file-analysis/SKILL.md`
+  `skills/README.md`
+  `tests/test_tools.py`
+  `tests/test_skills.py`
+  完成标准：
+  `list_files` 返回可传给 `read_file` 的 resource URI；默认 skill catalog 暴露 `file-analysis`；测试覆盖文件发现、domain 过滤和 prompt catalog 行为。
+
 ### P0 主线闭环
 
 - [x] T4. 改造 `present_files`，真正联动 `artifacts`
