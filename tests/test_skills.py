@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from app.config import AppConfig
+from app.config import AppConfig, PROJECT_ROOT
 from app.runtime import get_skills, get_system_prompt
 from app.skills import discover_skills, load_skill_body
 
@@ -114,3 +114,28 @@ description: Web research workflow
     assert "<description>Web research workflow</description>" in prompt
     assert "<location>skill://research/SKILL.md</location>" in prompt
     assert "Detailed instructions that should not be injected directly." not in prompt
+
+
+def test_project_default_skills_support_research_report_loop():
+    skills = discover_skills(PROJECT_ROOT / "skills")
+
+    assert [name for name in skills if name in {"research", "writer"}] == ["research", "writer"]
+    assert skills["research"].tools == ("web_search", "web_fetch", "write_report", "present_files")
+    assert skills["writer"].tools == ("write_report", "present_files")
+
+
+def test_project_default_prompt_exposes_skill_catalog_not_bodies():
+    config = AppConfig(
+        model_name="openai:gpt-4o-mini",
+        system_prompt="Base prompt.",
+        skills_dir=PROJECT_ROOT / "skills",
+    )
+
+    prompt = get_system_prompt(config)
+
+    assert "<name>research</name>" in prompt
+    assert "<location>skill://research/SKILL.md</location>" in prompt
+    assert "<name>writer</name>" in prompt
+    assert "<location>skill://writer/SKILL.md</location>" in prompt
+    assert "Use this skill when the user asks for web research" not in prompt
+    assert "Use this skill when the user asks to draft" not in prompt

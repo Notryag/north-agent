@@ -1,6 +1,9 @@
 # Skills
 
-本目录用于放本地 skill 定义。
+本目录用于放本地 skill 定义。当前默认提供：
+
+- `research`：Web 调研到 Markdown 报告再到 artifact 输出的闭环工作流
+- `writer`：Markdown 报告写出与 artifact 呈现工作流
 
 最小目录结构：
 

@@ -28,10 +28,15 @@ app/
 ├── cli.py
 ├── client.py
 ├── config.py
+├── outputs/
+├── skills/
+├── threads/
+├── tools/
 └── state.py
 main.py
 .env
 .env.example
+skills/
 tests/
 ```
 
@@ -199,14 +204,15 @@ print(response)
 
 ## 当前阶段真正缺少的能力
 
-如果把当前阶段任务定义为“Web 调研 -> Markdown 报告 -> artifact 输出”，现在最缺的不是更多抽象，而是这些闭环能力：
+如果把当前阶段任务定义为“Web 调研 -> Markdown 报告 -> artifact 输出”，当前最小闭环已经具备：
 
 - `web_search`
 - `web_fetch`
 - `write_report`
 - `present_files` 与 `artifacts` 真正联动
-- 围绕真实工具语义重建 runtime middleware
-- 更完整的 stream 事件
+- 围绕真实工具语义重建的 runtime middleware
+- 能暴露工具、状态、artifact 的 stream 事件
+- `research` / `writer` 本地 skill
 
 ## Skill 系统
 
@@ -263,16 +269,7 @@ python -m app --skill research --skill writer "调研 LangGraph 的 stream_mode 
 
 ## 下一步建议
 
-建议不要再继续泛化抽象，而是围绕当前阶段任务闭环推进：
-
-1. 引入 `web_search`
-2. 引入 `web_fetch`
-3. 新增 `write_report`
-4. 让 `present_files` 真正写入 `artifacts`
-5. 让 `stream()` 能清晰输出工具调用与工具结果
-6. 把当前 middleware 调整得更贴近 DeerFlow runtime 语义
-
-等这个闭环稳定后，再往 DeerFlow 的更完整能力扩展：
+当前阶段的最小闭环已经完成，下一步可以往 DeerFlow 的更完整能力扩展：
 
 - 学术综述
 - 技术可行性分析
