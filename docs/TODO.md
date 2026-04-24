@@ -74,6 +74,20 @@
   完成标准：
   `list_files` 返回可传给 `read_file` 的 resource URI；默认 skill catalog 暴露 `file-analysis`；测试覆盖文件发现、domain 过滤和 prompt catalog 行为。
 
+- [x] T11. 接入最小上传链路
+  目标：
+  让 CLI / client 能把本地文件复制到 thread uploads，并把 `uploaded_files` 作为 runtime-owned state 暴露给 agent。
+  关联文件：
+  `app/threads/uploads.py`
+  `app/threads/__init__.py`
+  `app/client.py`
+  `app/cli.py`
+  `tests/test_threads.py`
+  `tests/test_app.py`
+  `docs/TODO.md`
+  完成标准：
+  `AppClient.chat()` / `AppClient.stream()` 支持 `files=`；CLI 支持 `--file`；上传文件落到 `.deerflow/threads/<thread_id>/uploads/`；初始 state 含 `uploaded_files`，消息中包含可读的 `upload://` URI。
+
 ### P0 主线闭环
 
 - [x] T4. 改造 `present_files`，真正联动 `artifacts`

@@ -18,6 +18,13 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Enable a skill by name. Repeat to combine multiple skills.",
     )
+    parser.add_argument(
+        "--file",
+        dest="files",
+        action="append",
+        default=None,
+        help="Upload a local UTF-8 text file into the thread before running. Repeat to upload multiple files.",
+    )
     return parser
 
 
@@ -28,10 +35,10 @@ def main() -> int:
     client = AppClient(config)
 
     if args.stream:
-        for event in client.stream(args.message, thread_id=args.thread_id, skills=args.skills):
+        for event in client.stream(args.message, thread_id=args.thread_id, skills=args.skills, files=args.files):
             if event.type == "ai":
                 print(event.data["content"])
         return 0
 
-    print(client.chat(args.message, thread_id=args.thread_id, skills=args.skills))
+    print(client.chat(args.message, thread_id=args.thread_id, skills=args.skills, files=args.files))
     return 0

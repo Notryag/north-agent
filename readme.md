@@ -163,6 +163,12 @@ python -m app "用一句话解释什么是 DeerFlow"
 python -m app --stream "用一句话解释什么是 DeerFlow"
 ```
 
+如果要让 agent 分析本地文件，可以先上传到当前 thread：
+
+```powershell
+python -m app --skill file-analysis --file .\notes.md "总结这个文件"
+```
+
 如果要查看帮助：
 
 ```powershell

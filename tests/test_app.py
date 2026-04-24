@@ -70,6 +70,36 @@ def test_stream_passes_thread_context_and_config():
     assert events[-1].type == "end"
 
 
+def test_stream_uploads_files_into_initial_state(tmp_path):
+    source = tmp_path / "brief.md"
+    source.write_text("brief content", encoding="utf-8")
+
+    class StubAgent:
+        def __init__(self):
+            self.state = None
+
+        def stream(self, state, config=None, context=None, stream_mode=None):
+            self.state = state
+            yield {"messages": [state["messages"][0], AIMessage(content="reply", id="ai-1")]}
+
+    client = AppClient(AppConfig(model_name="openai:gpt-4o-mini"))
+    stub_agent = StubAgent()
+    client._agent = stub_agent
+
+    events = list(client.stream("analyze this", thread_id="thread-upload", files=[source]))
+
+    assert stub_agent.state["uploaded_files"] == [
+        {
+            "name": "brief.md",
+            "uri": "upload://brief.md",
+            "path": ".deerflow/threads/thread-upload/uploads/brief.md",
+            "size": len("brief content"),
+        }
+    ]
+    assert "Available uploaded files:\n- upload://brief.md (brief.md)" in stub_agent.state["messages"][0].content
+    assert events[-1].type == "end"
+
+
 def test_chat_returns_last_ai_event_content():
     class StubAgent:
         def stream(self, state, config=None, context=None, stream_mode=None):

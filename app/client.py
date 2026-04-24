@@ -3,6 +3,7 @@ from __future__ import annotations
 import uuid
 from collections.abc import Generator
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
@@ -10,6 +11,7 @@ from langchain_core.runnables import RunnableConfig
 
 from .agent import build_agent
 from .config import AppConfig
+from .threads import store_upload_files
 
 
 @dataclass(slots=True)
@@ -102,19 +104,41 @@ class AppClient:
             return ()
         return tuple(item for item in value if isinstance(item, str))
 
+    @staticmethod
+    def _format_upload_notice(uploaded_files: list[dict]) -> str:
+        if not uploaded_files:
+            return ""
+        lines = ["Available uploaded files:"]
+        for uploaded_file in uploaded_files:
+            uri = uploaded_file.get("uri")
+            name = uploaded_file.get("name")
+            if isinstance(uri, str) and isinstance(name, str):
+                lines.append(f"- {uri} ({name})")
+        return "\n".join(lines)
+
     def stream(
         self,
         message: str,
         *,
         thread_id: str | None = None,
         skills: list[str] | tuple[str, ...] | None = None,
+        files: list[str | Path] | tuple[str | Path, ...] | None = None,
     ) -> Generator[StreamEvent, None, None]:
         if thread_id is None:
             thread_id = str(uuid.uuid4())
 
+        uploaded_files = [
+            uploaded_file.as_state_record()
+            for uploaded_file in store_upload_files(files or (), thread_id=thread_id)
+        ]
+        upload_notice = self._format_upload_notice(uploaded_files)
+        message_content = f"{message}\n\n{upload_notice}" if upload_notice else message
+
         agent = self._get_agent(skills=skills)
         config = self._get_runnable_config(thread_id)
-        state = {"messages": [HumanMessage(content=message)]}
+        state: dict[str, Any] = {"messages": [HumanMessage(content=message_content)]}
+        if uploaded_files:
+            state["uploaded_files"] = uploaded_files
         seen_ai_ids: set[str] = set()
         seen_tool_ids: set[tuple[str | None, str | None, str]] = set()
         latest_artifacts: tuple[str, ...] = ()
@@ -192,11 +216,12 @@ class AppClient:
         *,
         thread_id: str | None = None,
         skills: list[str] | tuple[str, ...] | None = None,
+        files: list[str | Path] | tuple[str | Path, ...] | None = None,
     ) -> ChatResponse:
         last_text = ""
         final_thread_id = thread_id
         artifacts: tuple[str, ...] = ()
-        for event in self.stream(message, thread_id=thread_id, skills=skills):
+        for event in self.stream(message, thread_id=thread_id, skills=skills, files=files):
             event_thread_id = event.data.get("thread_id")
             if isinstance(event_thread_id, str):
                 final_thread_id = event_thread_id
