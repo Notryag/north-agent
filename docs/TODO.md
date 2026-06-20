@@ -4,31 +4,30 @@
 
 > 维护当前阶段可直接执行的任务清单。
 
+已完成事项归档到 [TODO_ARCHIVE](D:/workspace/github/deerflow-lite/docs/TODO_ARCHIVE.md)。
+
 如果需要看阶段原因、优先级来源、长期演进顺序，请看 `docs/LITE_EVOLUTION_PLAN.md`。
 
 如果需要看模块职责、目录边界、未来目标结构，请看 `docs/LITE_ARCHITECTURE.md`。
 
 ## 快速索引
 
-- 做报告输出 / artifacts：
-  看 `T4`、`T6`
+- 做端到端验证：
+  看 `T13`
 
-- 做流式事件：
-  看 `T5`
+- 做文件分析闭环：
+  看 `T13`、`T15`
 
-- 做 state 约定：
-  看 `T4`、`T6`、`T7`
+- 做代码执行准备：
+  看 `T16`
 
-- 做 runtime 保护：
-  看 `T8`
-
-- 做 skill 系统：
-  看 `T9`
+- 查已完成历史：
+  看 `docs/TODO_ARCHIVE.md`
 
 ## 使用规则
 
 - `[ ]` 未完成，属于当前或近期应做任务
-- `[x]` 已完成，一般不保留在本文件主体
+- `[x]` 已完成，一般不保留在本文件主体，完成后移动到归档
 - `[-]` 明确暂缓，不属于当前阶段主线
 
 每个任务都应尽量包含：
@@ -41,173 +40,75 @@
 
 1. 完成代码后，优先回写本文件中的 checkbox 状态
 2. 如果实际改动文件与 TODO 中列出的文件不同，要同步修正“关联文件”
-3. 如果改动改变了阶段顺序，更新 `docs/LITE_EVOLUTION_PLAN.md`
-4. 如果改动改变了模块边界，更新 `docs/LITE_ARCHITECTURE.md`
+3. 完成项应移动到 `docs/TODO_ARCHIVE.md`
+4. 如果改动改变了阶段顺序，更新 `docs/LITE_EVOLUTION_PLAN.md`
+5. 如果改动改变了模块边界，更新 `docs/LITE_ARCHITECTURE.md`
 
 默认不需要完整阅读 `docs/LITE_EVOLUTION_PLAN.md` 和 `docs/LITE_ARCHITECTURE.md`。
 
 只有当任务涉及优先级调整或模块边界变化时，才需要补读。
 
-## 当前北极星闭环
+## 当前阶段目标
 
-当前阶段所有 active TODO 都应服务这个闭环：
+上一阶段已经打通：
 
 > Web 调研 -> 信息整理 -> Markdown 报告 -> artifact 输出
 
-如果某个任务不能直接帮助这个闭环跑通，优先级应下降。
+当前阶段开始围绕这个基础自然扩展：
+
+> 文件输入 -> 文件发现 -> 文件读取 -> Markdown 报告 -> artifact 输出
 
 ## Active TODO
 
-### P3 下一阶段文件分析
+### P3 文件分析闭环
 
-- [x] T10. 引入线程文件发现入口
+- [ ] T13. 加端到端 smoke test
   目标：
-  让 agent 能发现当前 thread 内可读取的上传、工作区、输出和记忆文件，为文件分析闭环提供入口。
+  用一条测试证明当前用户入口能跑通上传、文件发现、文件读取、报告写出、artifact 暴露。
   关联文件：
+  `tests/test_app.py`
+  `tests/test_cli.py`
+  `app/client.py`
+  `app/cli.py`
   `app/tools/builtin/list_files.py`
-  `app/tools/builtin/__init__.py`
-  `app/tools/registry.py`
+  `app/tools/builtin/read_file.py`
+  `app/tools/builtin/write_report.py`
+  `app/tools/builtin/present_files.py`
+  完成标准：
+  测试覆盖 `files=` 上传；agent 侧能看到 `upload://...`；最终报告进入 outputs；`ChatResponse.artifacts` 或 CLI 输出能看到 artifact。
+
+- [ ] T15. 收敛文件分析 skill 的端到端说明
+  目标：
+  让 `file-analysis` skill 更明确地指导模型先发现文件、再读取相关文件、最后按需写报告。
+  关联文件：
   `skills/file-analysis/SKILL.md`
   `skills/README.md`
-  `tests/test_tools.py`
+  `readme.md`
   `tests/test_skills.py`
   完成标准：
-  `list_files` 返回可传给 `read_file` 的 resource URI；默认 skill catalog 暴露 `file-analysis`；测试覆盖文件发现、domain 过滤和 prompt catalog 行为。
+  skill 说明覆盖上传文件、线程文件、报告输出三类路径；默认 prompt 仍只暴露 skill catalog，不注入正文。
 
-- [x] T11. 接入最小上传链路
+### P4 代码执行准备
+
+- [ ] T16. 定义代码执行前置边界
   目标：
-  让 CLI / client 能把本地文件复制到 thread uploads，并把 `uploaded_files` 作为 runtime-owned state 暴露给 agent。
+  在真正引入执行能力前，先明确最小输入、输出、artifact、风险边界，避免直接做泛化 sandbox。
   关联文件：
-  `app/threads/uploads.py`
-  `app/threads/__init__.py`
-  `app/client.py`
-  `app/cli.py`
-  `tests/test_threads.py`
-  `tests/test_app.py`
   `docs/TODO.md`
-  完成标准：
-  `AppClient.chat()` / `AppClient.stream()` 支持 `files=`；CLI 支持 `--file`；上传文件落到 `.deerflow/threads/<thread_id>/uploads/`；初始 state 含 `uploaded_files`，消息中包含可读的 `upload://` URI。
-
-- [x] T12. 让 CLI 显示 artifact 输出
-  目标：
-  让命令行入口能直接看到 `chat()` / `stream()` 返回的 artifact 列表，避免报告已经生成但用户不可见。
-  关联文件：
-  `app/cli.py`
-  `tests/test_cli.py`
-  `docs/TODO.md`
-  `readme.md`
-  完成标准：
-  非流式响应打印 AI 文本后打印 `Artifacts:`；流式模式结束后打印最终 artifact 列表；测试覆盖空 artifact、非流式 artifact 和流式最终 artifact。
-
-- [x] T14. 让 CLI 可选显示流式事件
-  目标：
-  让调研和文件分析任务在命令行里能看到工具调用与状态更新摘要，同时保持默认输出安静。
-  关联文件：
-  `app/cli.py`
-  `tests/test_cli.py`
-  `docs/TODO.md`
-  `readme.md`
-  完成标准：
-  `--stream --show-events` 打印 tool / values / error 事件摘要；默认 `--stream` 仍只打印 AI 文本和最终 artifacts；测试覆盖事件格式化与 CLI 输出。
-
-### P0 主线闭环
-
-- [x] T4. 改造 `present_files`，真正联动 `artifacts`
-  目标：
-  让 artifact 成为线程状态的一等数据，而不是只是给模型看的字符串。
-  关联文件：
-  `app/tools/builtin/present_files.py`
-  `app/state.py`
-  `app/client.py`
-  `app/runtime.py`
-  `tests/test_tools.py`
-  `tests/test_app.py`
-  完成标准：
-  `ThreadState.artifacts` 被更新；`chat()` / `stream()` 都能拿到 artifact 结果；工具输出不再只是一段展示文本。
-
-- [x] T5. 扩展 `AppClient.stream()` 事件协议
-  目标：
-  让流式输出不仅有 AI 文本，还能看到工具与状态变化。
-  关联文件：
-  `app/client.py`
-  `app/state.py`
-  `tests/test_app.py`
-  完成标准：
-  至少覆盖 `ai`、`tool`、`values`、`end`、`error`；artifact 相关状态变化对调用方可见。
-
-### P1 支撑闭环
-
-- [x] T6. 把线程路径模型真正接入输出链路
-  目标：
-  让 `ThreadPaths` 不只是静态路径定义，而是实际参与报告写出与 artifact 存放。
-  关联文件：
-  `app/threads/paths.py`
-  `app/tools/builtin/present_files.py`
-  `app/tools/builtin/write_report.py`
-  `app/state.py`
-  `tests/test_threads.py`
-  完成标准：
-  报告文件和 artifact 有稳定 thread 级位置；路径约定被测试覆盖。
-
-- [x] T7. 明确 `ThreadState` 的最小更新约定
-  目标：
-  让后续 AI 清楚哪些字段是 runtime 主写、哪些字段是工具写入。
-  关联文件：
-  `app/state.py`
-  `app/client.py`
-  `app/runtime.py`
-  `docs/LITE_ARCHITECTURE.md`
-  完成标准：
-  `artifacts`、`thread_data`、`uploaded_files` 的职责和更新来源有明确文档或代码约束。
-
-- [x] T8. 以 DeerFlow 语义重建第一批 middleware
-  目标：
-  在不回退到 demo 语义的前提下，重建最小 runtime 保护层。
-  关联文件：
-  `app/agents/__init__.py`
-  `app/agents/middlewares/__init__.py`
-  `app/agents/middlewares/tool_error.py`
-  `app/agents/middlewares/loop_detection.py`
-  `app/agents/middlewares/clarification.py`
-  `app/runtime.py`
-  `tests/test_middlewares.py`
-  完成标准：
-  行为围绕真实工具失败、tool loop、clarification 恢复设计；确认语义成立后再默认启用。
-
-### P2 下一阶段基础设施
-
-- [x] T9. 引入最小 skill 系统
-  目标：
-  让 runtime 能向 agent 暴露可发现的 skill catalog，并通过懒加载读取具体 skill 内容，为后续文件分析、代码执行、报告生成等能力提供可复用装配层。
-  关联文件：
-  `app/config.py`
-  `app/runtime.py`
-  `app/agent.py`
-  `app/client.py`
-  `app/skills/__init__.py`
-  `app/skills/loader.py`
-  `app/cli.py`
-  `app/tools/builtin/read_file.py`
-  `tests/test_skills.py`
-  `tests/test_app.py`
-  `tests/test_agent.py`
-  `tests/test_config.py`
-  `tests/test_tools.py`
+  `docs/plan/roadmap.md`
   `docs/architecture/runtime-boundaries.md`
-  `docs/architecture/target-structure.md`
-  `readme.md`
   完成标准：
-  支持本地 `skills/<name>/SKILL.md`；agent 默认只拿到 skill catalog；具体正文通过 `read_file` + 资源 URI 按需读取；可通过配置或 CLI 过滤本轮可见 skill；默认不把 skill 正文直接注入上下文。
+  文档明确代码执行能力的最小闭环、暂不做事项、与 `workspace://` / `output://` 的关系。
 
 ## Parked
 
 - [-] S1. sandbox
   原因：
-  当前阶段核心不是执行隔离，而是先打通调研闭环。
+  代码执行边界尚未定义清楚，当前不直接引入完整 sandbox。
 
 - [-] S2. memory
   原因：
-  当前阶段还没有形成值得持久化的长期任务流。
+  当前还没有形成值得持久化的长期任务流。
 
 - [-] S3. MCP
   原因：
@@ -228,10 +129,3 @@
 - [-] S7. 大而全工具注册系统
   原因：
   现在应先让最小工具链跑通，而不是提前泛化。
-
-## 当前阶段退出标准
-
-- [x] Web 调研闭环已经跑通
-- [x] artifact 输出已经打通
-- [x] runtime 保护能力达到最小可用
-- [x] 下一阶段可以自然扩到文件分析、代码执行、报告生成

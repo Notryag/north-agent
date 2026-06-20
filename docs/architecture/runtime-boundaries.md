@@ -7,7 +7,7 @@
 - `app/config.py`
 - `app/state.py`
 - `app/agent.py`
-- `app/runtime.py`
+- `app/runtime/`
 - `app/client.py`
 - `app/checkpointer.py`
 
@@ -29,13 +29,15 @@
 - 共享状态 schema
 - 未来 reducer 扩展入口
 
-### `app/runtime.py`
+### `app/runtime/`
 
 - 组装工具
 - 组装 skill
 - 组装 middleware
 - 组装 checkpointer
 - 组装 state schema
+- 管理最小 run 生命周期
+- 通过 stream bridge 解耦 agent 执行和事件消费
 
 ### `app/skills/*`
 
@@ -61,11 +63,12 @@
 - `chat()` / `stream()` 对外入口
 - 标准化事件流
 - `thread_id` 与 runnable config
+- 把执行委托给 runtime service
 
 说明：
 
-- `thread_id` 在这里是 runtime scope，不是产品层对象
-- 它的职责只是隔离一次持续任务的状态、checkpoint 和 artifact 路径
+- `thread_id` / `run_id` 在当前阶段是 runtime scope，不是产品层对象
+- 它们的职责只是隔离一次持续任务的状态、checkpoint、事件流和 artifact 路径
 - 当前阶段不要围绕它继续发明更重的 thread 业务模型
 
 ### `app/tools/*`

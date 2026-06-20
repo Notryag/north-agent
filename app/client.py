@@ -11,6 +11,7 @@ from langchain_core.runnables import RunnableConfig
 
 from .agent import build_agent
 from .config import AppConfig
+from .runtime import RuntimeService
 from .threads import store_upload_files
 
 
@@ -53,6 +54,7 @@ class AppClient:
         self.checkpointer = checkpointer
         self._agent = None
         self._agents: dict[tuple[str, ...], Any] = {}
+        self.runtime = RuntimeService()
 
     def _normalize_skills(self, skills: list[str] | tuple[str, ...] | None) -> tuple[str, ...]:
         raw_items = self.config.enabled_skills if skills is None else tuple(skills)
@@ -134,7 +136,6 @@ class AppClient:
         upload_notice = self._format_upload_notice(uploaded_files)
         message_content = f"{message}\n\n{upload_notice}" if upload_notice else message
 
-        agent = self._get_agent(skills=skills)
         config = self._get_runnable_config(thread_id)
         state: dict[str, Any] = {"messages": [HumanMessage(content=message_content)]}
         if uploaded_files:
@@ -146,9 +147,46 @@ class AppClient:
             "thread_id": thread_id,
             "skills_dir": str(self.config.skills_dir.resolve()),
         }
+        agent_factory = lambda: self._get_agent(skills=skills)
+        record = self.runtime.start_run(
+            thread_id=thread_id,
+            agent_factory=agent_factory,
+            graph_input=state,
+            config=config,
+            context=context,
+            stream_mode="values",
+        )
 
         try:
-            for chunk in agent.stream(state, config=config, context=context, stream_mode="values"):
+            for runtime_event in self.runtime.stream_run(record.run_id):
+                if runtime_event.event == "metadata":
+                    continue
+
+                if runtime_event.event == "error":
+                    error_data = runtime_event.data if isinstance(runtime_event.data, dict) else {}
+                    yield StreamEvent(
+                        type="error",
+                        data={
+                            "thread_id": thread_id,
+                            "message": str(error_data.get("message") or ""),
+                            "error_type": str(error_data.get("error_type") or "Error"),
+                        },
+                    )
+                    raise RuntimeError(error_data.get("message") or "")
+
+                if runtime_event.event == "end":
+                    break
+
+                if runtime_event.event != "values":
+                    yield StreamEvent(
+                        type=runtime_event.event,
+                        data={"thread_id": thread_id, "data": runtime_event.data, "artifacts": latest_artifacts},
+                    )
+                    continue
+
+                chunk = runtime_event.data
+                if not isinstance(chunk, dict):
+                    continue
                 messages = chunk.get("messages", [])
                 artifacts = self._extract_artifacts(chunk)
                 if artifacts:
@@ -201,6 +239,8 @@ class AppClient:
                     type="values",
                     data={"thread_id": thread_id, "chunk": chunk, "artifacts": latest_artifacts},
                 )
+        except RuntimeError:
+            raise
         except Exception as exc:
             yield StreamEvent(
                 type="error",

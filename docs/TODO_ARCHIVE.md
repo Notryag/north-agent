@@ -1,0 +1,153 @@
+# DeerFlow Lite TODO Archive
+
+这份文件记录已经完成的 TODO。当前可执行任务请看 [TODO](D:/workspace/github/deerflow-lite/docs/TODO.md)。
+
+## Completed
+
+### P0 主线闭环
+
+- [x] T4. 改造 `present_files`，真正联动 `artifacts`
+  目标：
+  让 artifact 成为线程状态的一等数据，而不是只是给模型看的字符串。
+  关联文件：
+  `app/tools/builtin/present_files.py`
+  `app/state.py`
+  `app/client.py`
+  `app/runtime.py`
+  `tests/test_tools.py`
+  `tests/test_app.py`
+  完成标准：
+  `ThreadState.artifacts` 被更新；`chat()` / `stream()` 都能拿到 artifact 结果；工具输出不再只是一段展示文本。
+
+- [x] T5. 扩展 `AppClient.stream()` 事件协议
+  目标：
+  让流式输出不仅有 AI 文本，还能看到工具与状态变化。
+  关联文件：
+  `app/client.py`
+  `app/state.py`
+  `tests/test_app.py`
+  完成标准：
+  至少覆盖 `ai`、`tool`、`values`、`end`、`error`；artifact 相关状态变化对调用方可见。
+
+### P1 支撑闭环
+
+- [x] T6. 把线程路径模型真正接入输出链路
+  目标：
+  让 `ThreadPaths` 不只是静态路径定义，而是实际参与报告写出与 artifact 存放。
+  关联文件：
+  `app/threads/paths.py`
+  `app/tools/builtin/present_files.py`
+  `app/tools/builtin/write_report.py`
+  `app/state.py`
+  `tests/test_threads.py`
+  完成标准：
+  报告文件和 artifact 有稳定 thread 级位置；路径约定被测试覆盖。
+
+- [x] T7. 明确 `ThreadState` 的最小更新约定
+  目标：
+  让后续 AI 清楚哪些字段是 runtime 主写、哪些字段是工具写入。
+  关联文件：
+  `app/state.py`
+  `app/client.py`
+  `app/runtime.py`
+  `docs/LITE_ARCHITECTURE.md`
+  完成标准：
+  `artifacts`、`thread_data`、`uploaded_files` 的职责和更新来源有明确文档或代码约束。
+
+- [x] T8. 以 DeerFlow 语义重建第一批 middleware
+  目标：
+  在不回退到 demo 语义的前提下，重建最小 runtime 保护层。
+  关联文件：
+  `app/agents/__init__.py`
+  `app/agents/middlewares/__init__.py`
+  `app/agents/middlewares/tool_error.py`
+  `app/agents/middlewares/loop_detection.py`
+  `app/agents/middlewares/clarification.py`
+  `app/runtime.py`
+  `tests/test_middlewares.py`
+  完成标准：
+  行为围绕真实工具失败、tool loop、clarification 恢复设计；确认语义成立后再默认启用。
+
+### P2 下一阶段基础设施
+
+- [x] T9. 引入最小 skill 系统
+  目标：
+  让 runtime 能向 agent 暴露可发现的 skill catalog，并通过懒加载读取具体 skill 内容，为后续文件分析、代码执行、报告生成等能力提供可复用装配层。
+  关联文件：
+  `app/config.py`
+  `app/runtime.py`
+  `app/agent.py`
+  `app/client.py`
+  `app/skills/__init__.py`
+  `app/skills/loader.py`
+  `app/cli.py`
+  `app/tools/builtin/read_file.py`
+  `tests/test_skills.py`
+  `tests/test_app.py`
+  `tests/test_agent.py`
+  `tests/test_config.py`
+  `tests/test_tools.py`
+  `docs/architecture/runtime-boundaries.md`
+  `docs/architecture/target-structure.md`
+  `readme.md`
+  完成标准：
+  支持本地 `skills/<name>/SKILL.md`；agent 默认只拿到 skill catalog；具体正文通过 `read_file` + 资源 URI 按需读取；可通过配置或 CLI 过滤本轮可见 skill；默认不把 skill 正文直接注入上下文。
+
+### P3 文件分析闭环
+
+- [x] T10. 引入线程文件发现入口
+  目标：
+  让 agent 能发现当前 thread 内可读取的上传、工作区、输出和记忆文件，为文件分析闭环提供入口。
+  关联文件：
+  `app/tools/builtin/list_files.py`
+  `app/tools/builtin/__init__.py`
+  `app/tools/registry.py`
+  `skills/file-analysis/SKILL.md`
+  `skills/README.md`
+  `tests/test_tools.py`
+  `tests/test_skills.py`
+  完成标准：
+  `list_files` 返回可传给 `read_file` 的 resource URI；默认 skill catalog 暴露 `file-analysis`；测试覆盖文件发现、domain 过滤和 prompt catalog 行为。
+
+- [x] T11. 接入最小上传链路
+  目标：
+  让 CLI / client 能把本地文件复制到 thread uploads，并把 `uploaded_files` 作为 runtime-owned state 暴露给 agent。
+  关联文件：
+  `app/threads/uploads.py`
+  `app/threads/__init__.py`
+  `app/client.py`
+  `app/cli.py`
+  `tests/test_threads.py`
+  `tests/test_app.py`
+  `docs/TODO.md`
+  完成标准：
+  `AppClient.chat()` / `AppClient.stream()` 支持 `files=`；CLI 支持 `--file`；上传文件落到 `.deerflow/threads/<thread_id>/uploads/`；初始 state 含 `uploaded_files`，消息中包含可读的 `upload://` URI。
+
+- [x] T12. 让 CLI 显示 artifact 输出
+  目标：
+  让命令行入口能直接看到 `chat()` / `stream()` 返回的 artifact 列表，避免报告已经生成但用户不可见。
+  关联文件：
+  `app/cli.py`
+  `tests/test_cli.py`
+  `docs/TODO.md`
+  `readme.md`
+  完成标准：
+  非流式响应打印 AI 文本后打印 `Artifacts:`；流式模式结束后打印最终 artifact 列表；测试覆盖空 artifact、非流式 artifact 和流式最终 artifact。
+
+- [x] T14. 让 CLI 可选显示流式事件
+  目标：
+  让调研和文件分析任务在命令行里能看到工具调用与状态更新摘要，同时保持默认输出安静。
+  关联文件：
+  `app/cli.py`
+  `tests/test_cli.py`
+  `docs/TODO.md`
+  `readme.md`
+  完成标准：
+  `--stream --show-events` 打印 tool / values / error 事件摘要；默认 `--stream` 仍只打印 AI 文本和最终 artifacts；测试覆盖事件格式化与 CLI 输出。
+
+## Completed Stage Exit Criteria
+
+- [x] Web 调研闭环已经跑通
+- [x] artifact 输出已经打通
+- [x] runtime 保护能力达到最小可用
+- [x] 下一阶段可以自然扩到文件分析、代码执行、报告生成

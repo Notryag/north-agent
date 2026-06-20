@@ -31,6 +31,9 @@
 - `docs/TODO.md`
   当前可执行任务、checkbox 状态、关联文件、完成标准
 
+- `docs/TODO_ARCHIVE.md`
+  已完成任务归档
+
 - `docs/LITE_EVOLUTION_PLAN.md`
   计划索引，继续跳到 `docs/plan/`
 
@@ -40,6 +43,7 @@
 ## AI 更新规则
 
 1. 完成具体任务后，先更新 `docs/TODO.md`
-2. 阶段顺序或优先级变了，再更新 `docs/LITE_EVOLUTION_PLAN.md`
-3. 模块归属或目录边界变了，再更新 `docs/LITE_ARCHITECTURE.md`
-4. 不要因为一次代码改动，把三份文档全部重写
+2. 已完成任务从 `docs/TODO.md` 移到 `docs/TODO_ARCHIVE.md`
+3. 阶段顺序或优先级变了，再更新 `docs/LITE_EVOLUTION_PLAN.md`
+4. 模块归属或目录边界变了，再更新 `docs/LITE_ARCHITECTURE.md`
+5. 不要因为一次代码改动，把所有文档全部重写

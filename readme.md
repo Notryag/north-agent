@@ -208,7 +208,7 @@ print(response)
 - 本地 skill 发现与装配
 - `AppClient.chat()`
 - `AppClient.stream()`
-- `runtime.py` 统一解析 tools / middlewares / checkpointer
+- `app/runtime/` 统一解析 tools / middlewares / checkpointer，并提供最小 run / stream runtime
 - 最小 `ThreadState`
 - 基础 checkpointer 接口
 - 最小工具注册骨架
