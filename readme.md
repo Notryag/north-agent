@@ -21,18 +21,14 @@
 核心结构：
 
 ```text
+packages/
+└── harness/
+    ├── pyproject.toml
+    └── north/
 app/
 ├── __init__.py
 ├── __main__.py
-├── agent.py
 ├── cli.py
-├── client.py
-├── config.py
-├── outputs/
-├── skills/
-├── threads/
-├── tools/
-└── state.py
 main.py
 .env
 .env.example
@@ -42,16 +38,10 @@ tests/
 
 其中：
 
-- `app/config.py`
-  负责从项目根目录 `.env` 加载配置
-- `app/state.py`
-  定义最小 `ThreadState`
-- `app/agent.py`
-  统一创建 LangChain agent
-- `app/client.py`
-  暴露 `AppClient.chat()` 和 `AppClient.stream()`
+- `packages/harness/north/`
+  放可复用 harness 核心，包括 agent、client、runtime、skills、tools、threads 等
 - `app/cli.py`
-  提供命令行入口
+  作为当前仓库宿主层的 CLI 入口
 - `main.py`
   提供最直接的运行方式
 
@@ -62,9 +52,9 @@ tests/
 ```text
 user
   -> main.py / python -m app
-  -> AppClient
-  -> build_agent(...)
-  -> create_agent(...)
+  -> app.cli
+  -> north.client.AppClient
+  -> north.agent.build_agent(...)
   -> model
   -> final answer
 ```
@@ -72,8 +62,8 @@ user
 当前版本的重点不是“功能已经完整”，而是：
 
 - 对外接口已经稳定
-- runtime 组装点已经形成
-- 后续可以围绕阶段任务持续补能力，而不需要推翻架构
+- harness / app 分层已经形成
+- 后续可以继续删除宿主层残留代码，而不需要推翻结构
 
 ## 配置方式
 
@@ -208,7 +198,7 @@ print(response)
 - 本地 skill 发现与装配
 - `AppClient.chat()`
 - `AppClient.stream()`
-- `app/runtime/` 统一解析 tools / middlewares / checkpointer，并提供最小 run / stream runtime
+- `north/runtime/` 统一解析 tools / middlewares / checkpointer，并提供最小 run / stream runtime
 - 最小 `ThreadState`
 - 基础 checkpointer 接口
 - 最小工具注册骨架

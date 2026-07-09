@@ -3,13 +3,13 @@ import uuid
 from langchain_core.language_models.fake_chat_models import FakeListChatModel
 from langchain_core.messages import AIMessage, ToolMessage
 
-from app.client import AppClient
-from app.config import AppConfig
+from north.client import AppClient
+from north.config import AppConfig
 
 
 def test_chat_returns_last_ai_message(monkeypatch):
     monkeypatch.setattr(
-        "app.agent.create_chat_model",
+        "north.agent.create_chat_model",
         lambda name, thinking_enabled=False: FakeListChatModel(responses=["DeerFlow is an agent shell."]),
     )
     client = AppClient(AppConfig(model_name="openai:gpt-4o-mini"))
@@ -23,7 +23,7 @@ def test_chat_returns_last_ai_message(monkeypatch):
 
 def test_stream_emits_message_and_values_events(monkeypatch):
     monkeypatch.setattr(
-        "app.agent.create_chat_model",
+        "north.agent.create_chat_model",
         lambda name, thinking_enabled=False: FakeListChatModel(responses=["Minimal reply"]),
     )
     client = AppClient(AppConfig(model_name="openai:gpt-4o-mini"))
@@ -235,7 +235,7 @@ def test_client_builds_distinct_agents_for_skill_sets(monkeypatch):
         calls.append(tuple(skills or ()))
         return StubAgent(label=",".join(skills or ()) or "default")
 
-    monkeypatch.setattr("app.client.build_agent", fake_build_agent)
+    monkeypatch.setattr("north.client.build_agent", fake_build_agent)
 
     client = AppClient(AppConfig(model_name="openai:gpt-4o-mini"))
 

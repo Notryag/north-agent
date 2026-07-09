@@ -1,6 +1,6 @@
-from app.client import ChatResponse, StreamEvent
+from north.client import ChatResponse, StreamEvent
 from app.cli import format_artifacts, format_stream_event, main
-from app.config import AppConfig
+from north.config import AppConfig
 
 
 def test_format_artifacts_handles_empty_and_present_artifacts():

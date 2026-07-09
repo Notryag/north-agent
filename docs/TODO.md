@@ -105,12 +105,12 @@
   关联文件：
   `tests/test_app.py`
   `tests/test_cli.py`
-  `app/client.py`
+  `packages/harness/north/client.py`
   `app/cli.py`
-  `app/tools/builtin/list_files.py`
-  `app/tools/builtin/read_file.py`
-  `app/tools/builtin/write_report.py`
-  `app/tools/builtin/present_files.py`
+  `packages/harness/north/tools/builtin/list_files.py`
+  `packages/harness/north/tools/builtin/read_file.py`
+  `packages/harness/north/tools/builtin/write_report.py`
+  `packages/harness/north/tools/builtin/present_files.py`
   完成标准：
   测试覆盖 `files=` 上传；agent 侧能看到 `upload://...`；最终报告进入 outputs；`ChatResponse.artifacts` 或 CLI 输出能看到 artifact。
 

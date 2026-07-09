@@ -4,32 +4,34 @@
 
 当前代码已经有了正确骨架：
 
-- `app/config.py`
-- `app/state.py`
-- `app/agent.py`
-- `app/runtime/`
-- `app/client.py`
-- `app/checkpointer.py`
+- `packages/harness/north/config.py`
+- `packages/harness/north/state.py`
+- `packages/harness/north/agent.py`
+- `packages/harness/north/runtime/`
+- `packages/harness/north/client.py`
+- `packages/harness/north/checkpointer.py`
+- `app/cli.py`
 
 问题不在于“缺更多模块”，而在于：
 
 - 哪些能力是真正推动 DeerFlow 方向的
 - 哪些只是看起来像 DeerFlow，但没有形成任务闭环
+- 哪些旧 `app/*` 兼容入口应该继续删除，而不是保留
 
 ## 不变的模块边界
 
-### `app/config.py`
+### `packages/harness/north/config.py`
 
 - 环境变量加载
 - runtime 配置
 - 参数校验
 
-### `app/state.py`
+### `packages/harness/north/state.py`
 
 - 共享状态 schema
 - 未来 reducer 扩展入口
 
-### `app/runtime/`
+### `packages/harness/north/runtime/`
 
 - 组装工具
 - 组装 skill
@@ -39,7 +41,7 @@
 - 管理最小 run 生命周期
 - 通过 stream bridge 解耦 agent 执行和事件消费
 
-### `app/skills/*`
+### `packages/harness/north/skills/*`
 
 - 从本地 skill 目录发现 skill 定义
 - 读取 frontmatter，生成 skill catalog
@@ -53,12 +55,12 @@
 - 具体 `SKILL.md` 内容通过 `read_file` 等工具按资源 URI 按需读取
 - 第一版不承担 marketplace / sandbox / 远程安装职责
 
-### `app/agent.py`
+### `packages/harness/north/agent.py`
 
 - 创建 model
 - 调用 `create_agent(...)`
 
-### `app/client.py`
+### `packages/harness/north/client.py`
 
 - `chat()` / `stream()` 对外入口
 - 标准化事件流
@@ -71,14 +73,21 @@
 - 它们的职责只是隔离一次持续任务的状态、checkpoint、事件流和 artifact 路径
 - 当前阶段不要围绕它继续发明更重的 thread 业务模型
 
-### `app/tools/*`
+### `packages/harness/north/tools/*`
 
 - 工具定义
 - 工具注册
 
-### `app/agents/middlewares/*`
+### `packages/harness/north/agents/middlewares/*`
 
 - 运行时行为控制
+
+### `app/cli.py`
+
+- 宿主层 CLI 入口
+- 参数解析
+- 默认配置装配
+- 不承载可复用 harness 核心实现
 
 ## 当前最小状态模型方向
 
@@ -130,4 +139,4 @@ class ThreadState(AgentState):
 
 ## 当前阶段的架构策略
 
-> 保持 DeerFlow 总体架构方向不变，用 Web 调研这个阶段性任务去验证和逼出最关键的 runtime 能力。
+> 保持 DeerFlow 总体架构方向不变，把可复用核心收敛进 `packages/harness/north/`，宿主层只保留 CLI/API/default wiring，并持续删除旧兼容层。

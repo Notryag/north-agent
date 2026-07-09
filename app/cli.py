@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import argparse
 
-from .client import AppClient, StreamEvent
-from .config import AppConfig
+from north.client import AppClient, StreamEvent
+from north.config import AppConfig
 
 
 def format_stream_event(event: StreamEvent) -> str:

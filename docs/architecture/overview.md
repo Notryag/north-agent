@@ -29,9 +29,10 @@
 
 ```text
 CLI / Python caller
-  -> AppClient
-  -> Runtime Assembly
-  -> build_agent(...)
+  -> app.cli / main.py
+  -> north.client.AppClient
+  -> north.runtime
+  -> north.agent.build_agent(...)
   -> LangChain / LangGraph agent graph
   -> state + tools + middleware + checkpointer
 ```

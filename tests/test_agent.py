@@ -1,5 +1,5 @@
-from app.agent import build_agent, create_chat_model
-from app.config import AppConfig
+from north.agent import build_agent, create_chat_model
+from north.config import AppConfig
 
 
 def test_create_chat_model_defaults_plain_names_to_openai_provider(monkeypatch):
@@ -9,7 +9,7 @@ def test_create_chat_model_defaults_plain_names_to_openai_provider(monkeypatch):
         captured.update(kwargs)
         return object()
 
-    monkeypatch.setattr("app.agent.init_chat_model", fake_init_chat_model)
+    monkeypatch.setattr("north.agent.init_chat_model", fake_init_chat_model)
 
     create_chat_model("qwen3.6-plus")
 
@@ -23,7 +23,7 @@ def test_create_chat_model_preserves_explicit_provider(monkeypatch):
         captured.update(kwargs)
         return object()
 
-    monkeypatch.setattr("app.agent.init_chat_model", fake_init_chat_model)
+    monkeypatch.setattr("north.agent.init_chat_model", fake_init_chat_model)
 
     create_chat_model("openai:gpt-4o-mini")
 
@@ -51,9 +51,9 @@ def test_build_agent_injects_skill_catalog_not_skill_body(monkeypatch, tmp_path)
         captured.update(kwargs)
         return object()
 
-    monkeypatch.setattr("app.agent.create_chat_model", fake_create_chat_model)
-    monkeypatch.setattr("app.agent._supports_tool_binding", lambda model: True)
-    monkeypatch.setattr("app.agent.create_agent", fake_create_agent)
+    monkeypatch.setattr("north.agent.create_chat_model", fake_create_chat_model)
+    monkeypatch.setattr("north.agent._supports_tool_binding", lambda model: True)
+    monkeypatch.setattr("north.agent.create_agent", fake_create_agent)
 
     build_agent(
         AppConfig(
