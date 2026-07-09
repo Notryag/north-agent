@@ -3,7 +3,7 @@ from types import SimpleNamespace
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph.types import Command
 
-from app.agents.middlewares import (
+from north.agents.middlewares import (
     ClarificationMiddleware,
     LoopDetectionMiddleware,
     ToolErrorHandlingMiddleware,

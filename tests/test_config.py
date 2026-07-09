@@ -1,6 +1,6 @@
 import pytest
 
-from app.config import AppConfig
+from north.config import AppConfig
 
 
 def test_from_env_parses_skill_settings(monkeypatch, tmp_path):

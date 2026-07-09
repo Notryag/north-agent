@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from app.resources import parse_resource_uri, resolve_resource_uri
+from north.resources import parse_resource_uri, resolve_resource_uri
 
 
 def test_parse_resource_uri_normalizes_skill_default_file():

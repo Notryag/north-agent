@@ -2,9 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from langchain.agents import create_agent
-from langchain.chat_models import init_chat_model
-from langchain_core.language_models.chat_models import BaseChatModel
+from north.agent import _supports_tool_binding
 
 from .config import AppConfig
 from .runtime import (
@@ -15,11 +13,8 @@ from .runtime import (
     get_system_prompt as resolve_system_prompt,
     get_tools as resolve_tools,
 )
-
-
-def _supports_tool_binding(model) -> bool:
-    bind_tools = getattr(type(model), "bind_tools", None)
-    return bind_tools is not None and bind_tools is not BaseChatModel.bind_tools
+from langchain.agents import create_agent
+from langchain.chat_models import init_chat_model
 
 
 def create_chat_model(name: str, thinking_enabled: bool = False):

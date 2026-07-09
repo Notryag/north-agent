@@ -1,8 +1,10 @@
 from pathlib import Path
 
-from app.config import AppConfig, PROJECT_ROOT
-from app.runtime import get_skills, get_system_prompt
-from app.skills import discover_skills, load_skill_body
+from north.config import AppConfig
+from north.runtime import get_skills, get_system_prompt
+from north.skills import discover_skills, load_skill_body
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
 def write_skill(
@@ -117,7 +119,8 @@ description: Web research workflow
 
 
 def test_project_default_skills_support_research_report_loop():
-    skills = discover_skills(PROJECT_ROOT / "skills")
+    assert (REPO_ROOT / "skills" / "file-analysis" / "SKILL.md").exists(), REPO_ROOT
+    skills = discover_skills(REPO_ROOT / "skills")
 
     assert skills["file-analysis"].tools == ("list_files", "read_file", "write_report", "present_files")
     assert [name for name in skills if name in {"research", "writer"}] == ["research", "writer"]
@@ -129,7 +132,7 @@ def test_project_default_prompt_exposes_skill_catalog_not_bodies():
     config = AppConfig(
         model_name="openai:gpt-4o-mini",
         system_prompt="Base prompt.",
-        skills_dir=PROJECT_ROOT / "skills",
+        skills_dir=REPO_ROOT / "skills",
     )
 
     prompt = get_system_prompt(config)

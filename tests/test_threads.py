@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from app.threads.paths import ThreadPaths
-from app.threads.uploads import store_upload_file, store_upload_files
+from north.threads.paths import ThreadPaths
+from north.threads.uploads import store_upload_file, store_upload_files
 
 
 def test_thread_paths_resolve_expected_directories(tmp_path: Path):

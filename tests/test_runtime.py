@@ -1,8 +1,8 @@
 import time
 
-from app.runtime import MemoryStreamBridge, RunConflictError, RunManager, RuntimeService
-from app.runtime.runs import RunStatus
-from app.runtime.worker import run_agent
+from north.runtime import MemoryStreamBridge, RunConflictError, RunManager, RuntimeService
+from north.runtime.runs import RunStatus
+from north.runtime.worker import run_agent
 
 
 def test_run_manager_rejects_active_run_for_same_thread():

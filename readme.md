@@ -186,8 +186,8 @@ python -m app --help
 ## 代码示例
 
 ```python
-from app.client import AppClient
-from app.config import AppConfig
+from north.client import AppClient
+from north.config import AppConfig
 
 
 config = AppConfig.from_env()

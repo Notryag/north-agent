@@ -58,7 +58,44 @@
 
 > 文件输入 -> 文件发现 -> 文件读取 -> Markdown 报告 -> artifact 输出
 
+并在架构上同步推进：
+
+> 按 DeerFlow 的 `Harness/App` 分层收敛当前仓库，把可复用 runtime 核心迁入 `packages/harness/north`，逐步删掉旧兼容层
+
 ## Active TODO
+
+### P0 Harness/App 架构收敛
+
+- [ ] H1. 固化 `packages/harness/north` 的公开边界
+  目标：
+  明确 `north` 的稳定公开接口，只把真正可复用的 harness 能力放进包里。
+  关联文件：
+  `packages/harness/pyproject.toml`
+  `packages/harness/north/__init__.py`
+  `docs/architecture/target-structure.md`
+  完成标准：
+  `north` 公开入口清晰；`app` 不再承担可复用核心实现定义。
+
+- [ ] H2. 去掉 `north` 对当前仓库固定路径的隐式依赖
+  目标：
+  让 `north` 不再把仓库根、skills 目录、thread 目录当成内部常量假设。
+  关联文件：
+  `packages/harness/north/config.py`
+  `packages/harness/north/threads/*`
+  `packages/harness/north/resources.py`
+  `packages/harness/north/tools/builtin/*`
+  完成标准：
+  `north` 的路径相关能力由显式配置或 runtime context 注入；宿主项目负责给默认值。
+
+- [ ] H3. 分链迁移并删除兼容层
+  目标：
+  按链路迁移 `config/resources/skills/threads/outputs`、`runtime/checkpointer/tools`、`agent/client`，每完成一条链就删除对应 `app` 兼容层。
+  关联文件：
+  `app/`
+  `packages/harness/north/`
+  `tests/`
+  完成标准：
+  兼容层数量单调减少；不保留长期双实现；全量测试持续通过。
 
 ### P3 文件分析闭环
 

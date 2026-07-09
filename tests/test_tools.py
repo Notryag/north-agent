@@ -1,14 +1,14 @@
 from pathlib import Path
 
-from app.config import AppConfig
-from app.runtime import get_tools
-from app.tools import get_builtin_tools
-from app.tools.builtin.fetch import _extract_page_content
-from app.tools.builtin.list_files import format_file_listing, list_thread_file_uris
-from app.tools.builtin.present_files import present_file_listing, resolve_artifact_paths
-from app.tools.builtin.read_file import read_text_file
-from app.tools.builtin.search import _parse_search_results
-from app.tools.builtin.write_report import write_report_file
+from north.config import AppConfig
+from north.runtime import get_tools
+from north.tools import get_builtin_tools
+from north.tools.builtin.fetch import _extract_page_content
+from north.tools.builtin.list_files import format_file_listing, list_thread_file_uris
+from north.tools.builtin.present_files import present_file_listing, resolve_artifact_paths
+from north.tools.builtin.read_file import read_text_file
+from north.tools.builtin.search import _parse_search_results
+from north.tools.builtin.write_report import write_report_file
 
 
 def test_builtin_tool_registry_contains_expected_tools():

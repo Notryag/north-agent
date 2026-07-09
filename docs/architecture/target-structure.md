@@ -2,109 +2,83 @@
 
 ## 最终目标目录结构
 
-`deerflow-lite` 的目录结构应逐步朝 `deer-flow/backend/packages/harness/deerflow/` 的精简版靠拢。
+`deerflow-lite` 的目录结构应逐步朝 `deer-flow/backend/packages/harness/` 的分层方向靠拢：
+
+- `packages/harness/` 放可复用 harness 包
+- `app/` 只放当前仓库自己的 CLI / API / 默认配置注入
+- 依赖方向必须始终保持 `app -> harness`
+- 任何兼容层都只是迁移过程中的短期产物，目标是最终删除
+
+当前选定的 harness 包名为 `north`。
 
 ```text
+packages/
+└── harness/
+    ├── pyproject.toml
+    └── north/
+        ├── __init__.py
+        ├── agent.py
+        ├── client.py
+        ├── config.py
+        ├── checkpointer.py
+        ├── resources.py
+        ├── state.py
+        ├── runtime/
+        │   ├── __init__.py
+        │   ├── service.py
+        │   ├── worker.py
+        │   ├── serialization.py
+        │   ├── runs/
+        │   └── stream_bridge/
+        ├── skills/
+        │   ├── __init__.py
+        │   └── loader.py
+        ├── agents/
+        │   ├── __init__.py
+        │   └── middlewares/
+        ├── tools/
+        │   ├── __init__.py
+        │   ├── registry.py
+        │   └── builtin/
+        ├── threads/
+        │   ├── __init__.py
+        │   └── paths.py
+        └── outputs/
+            ├── __init__.py
+            └── writer.py
 app/
 ├── __init__.py
-├── agent.py
-├── client.py
-├── runtime/
-│   ├── __init__.py
-│   ├── service.py
-│   ├── worker.py
-│   ├── serialization.py
-│   ├── runs/
-│   └── stream_bridge/
-├── config.py
-├── checkpointer.py
-├── state.py
-├── skills/
-│   ├── __init__.py
-│   └── loader.py
-├── models/
-│   ├── __init__.py
-│   └── factory.py
-├── agents/
-│   ├── __init__.py
-│   ├── lead/
-│   └── middlewares/
-├── tools/
-│   ├── __init__.py
-│   ├── registry.py
-│   └── builtin/
-├── threads/
-│   ├── __init__.py
-│   └── paths.py
-├── outputs/
-│   ├── __init__.py
-│   └── writer.py
-├── utils/
-│   ├── __init__.py
-│   └── text.py
-└── cli.py
+├── __main__.py
+├── cli.py
+├── api/
+└── defaults/
+skills/
+tests/
 ```
 
-## 每个目录未来负责什么
+## Harness 与 App 的职责
 
-### `app/models/`
+### `packages/harness/north/`
 
-- 模型工厂
-- 模型 provider 适配
-- thinking / provider 参数兼容
+- 可复用 agent harness
+- runtime service / stream / run lifecycle
+- state schema
+- tools / middlewares / skill loading
+- thread / artifact / resource contract
+- 可被其他宿主项目复用的 client 和 agent factory
+- 不应依赖当前仓库固定的 `skills/`、`.deerflow/`、`.env` 路径
 
-### `app/skills/`
+### `app/`
 
-- skill 发现与加载
-- skill catalog 生成
-- `SKILL.md` 正文按需读取入口
-
-### `app/agents/`
-
-- agent 相关实现
-- 主 agent
-- 更复杂的 prompt 组装或内部节点逻辑
-
-### `app/agents/middlewares/`
-
-- runtime middleware
-- 每个 middleware 只解决一个问题
-
-建议最终收敛：
-
-- `tool_error.py`
-- `loop_detection.py`
-- `clarification.py`
-- `thread_data.py`
-- `uploads.py`
-
-### `app/tools/`
-
-- 工具定义
-- 工具注册
-- 按类型分目录
-
-### `app/tools/builtin/`
-
-- 与 runtime 强绑定的内置工具
-- 例如 `ask_clarification`、`web_search`、`web_fetch`、`present_files`、`write_report`
-
-### `app/threads/`
-
-- thread 路径模型
-- workspace / uploads / outputs 约定
-
-### `app/outputs/`
-
-- 输出文件生成
-- `report.md` 等 artifact 写出辅助逻辑
-
-### `app/utils/`
-
-- 无状态、与业务边界弱耦合的辅助函数
+- 当前仓库宿主层
+- CLI / API / 未来前后端装配
+- 当前仓库默认 `skills_dir`、`thread_base_dir`、`env_path` 注入
+- 不承载可复用 runtime 核心实现
 
 ## 目录结构演进原则
 
-1. 若某项能力未来显然属于 `models/`、`tools/`、`agents/middlewares/`、`threads/`、`outputs/`，就不要继续塞回顶层文件
-2. 当前阶段可以少量保留在单文件里，但一旦增长，就迁移到目标目录
-3. 目录结构服务于 DeerFlow 总体方向，而不是当前临时任务
+1. 若某项能力可在其他宿主项目复用，就优先放进 `packages/harness/north/`
+2. 若某项能力只属于当前仓库的入口、部署、默认路径或 UI/API glue，就留在 `app/`
+3. 兼容层可以暂时存在，但必须标记为迁移中产物，不得长期作为正式架构
+4. 每次迁移都应减少一部分 `app -> app` 旧实现依赖，逐步改成 `app -> north`
+5. 当某一条链迁移完成后，应删除对应兼容层，而不是长期双轨维护

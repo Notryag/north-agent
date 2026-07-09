@@ -1,3 +1,1 @@
-from .writer import write_output_file
-
-__all__ = ["write_output_file"]
+from north.outputs import *  # noqa: F401,F403
