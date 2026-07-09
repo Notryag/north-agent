@@ -11,6 +11,7 @@ from ..skills import SkillSpec, compose_system_prompt, load_all_skills, load_ski
 from ..state import ThreadState
 from ..tools import get_builtin_tools
 from .runs import DisconnectMode, RunConflictError, RunManager, RunRecord, RunStatus
+from .invoke import invoke_agent_once
 from .service import RuntimeService
 from .stream_bridge import MemoryStreamBridge
 
@@ -80,4 +81,5 @@ __all__ = [
     "get_state_schema",
     "get_system_prompt",
     "get_tools",
+    "invoke_agent_once",
 ]

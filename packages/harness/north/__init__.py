@@ -4,7 +4,15 @@ from .agent import build_agent
 from .checkpointer import get_default_checkpointer
 from .client import AppClient, StreamEvent
 from .config import AppConfig, load_environment
-from .runtime import get_checkpointer, get_middlewares, get_skills, get_state_schema, get_system_prompt, get_tools
+from .runtime import (
+    get_checkpointer,
+    get_middlewares,
+    get_skills,
+    get_state_schema,
+    get_system_prompt,
+    get_tools,
+    invoke_agent_once,
+)
 from .skills import SkillSpec
 from .state import ThreadState
 from .tools import get_builtin_tools
@@ -24,5 +32,6 @@ __all__ = [
     "get_state_schema",
     "get_system_prompt",
     "get_tools",
+    "invoke_agent_once",
     "load_environment",
 ]
