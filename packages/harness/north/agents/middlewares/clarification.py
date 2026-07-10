@@ -44,6 +44,13 @@ class ClarificationMiddleware(AgentMiddleware):
 
     def wrap_tool_call(self, request, handler):
         result = handler(request)
+        return self._track_clarification(request, result)
+
+    async def awrap_tool_call(self, request, handler):
+        result = await handler(request)
+        return self._track_clarification(request, result)
+
+    def _track_clarification(self, request, result):
         if request.tool_call.get("name") != "ask_clarification":
             return result
 

@@ -51,3 +51,15 @@ class LoopDetectionMiddleware(AgentMiddleware):
                 status="error",
             )
         return handler(request)
+
+    async def awrap_tool_call(self, request, handler):
+        count = self._seen_call_count(request.state, request.tool_call)
+        if count > self.max_same_call_count:
+            tool_name = request.tool_call.get("name", "unknown_tool")
+            return ToolMessage(
+                content=f"Stopped repeated tool loop for '{tool_name}' after {count} identical calls.",
+                tool_call_id=request.tool_call["id"],
+                name=tool_name,
+                status="error",
+            )
+        return await handler(request)

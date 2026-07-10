@@ -1,3 +1,4 @@
+import asyncio
 from types import SimpleNamespace
 
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
@@ -34,6 +35,20 @@ def test_tool_error_middleware_converts_exceptions_to_tool_message():
     assert "network down" in result.content
 
 
+def test_tool_error_middleware_converts_async_exceptions_to_tool_message():
+    middleware = ToolErrorHandlingMiddleware()
+    request = SimpleNamespace(tool_call={"id": "tool-1", "name": "web_fetch", "args": {}})
+
+    async def fail(_):
+        raise RuntimeError("network down")
+
+    result = asyncio.run(middleware.awrap_tool_call(request, fail))
+
+    assert isinstance(result, ToolMessage)
+    assert result.status == "error"
+    assert "network down" in result.content
+
+
 def test_loop_detection_middleware_blocks_repeated_identical_calls():
     middleware = LoopDetectionMiddleware(max_same_call_count=2)
     repeated_call = {"name": "web_search", "args": {"query": "deerflow"}}
@@ -58,6 +73,21 @@ def test_loop_detection_middleware_blocks_repeated_identical_calls():
     assert "repeated tool loop" in result.content
 
 
+def test_loop_detection_middleware_allows_async_tool_call():
+    middleware = LoopDetectionMiddleware()
+    request = SimpleNamespace(
+        tool_call={"id": "tool-1", "name": "web_search", "args": {"query": "deerflow"}},
+        state={"messages": []},
+    )
+
+    async def handle(_):
+        return ToolMessage(content="ok", tool_call_id="tool-1")
+
+    result = asyncio.run(middleware.awrap_tool_call(request, handle))
+
+    assert result.content == "ok"
+
+
 def test_clarification_middleware_marks_pending_question():
     middleware = ClarificationMiddleware()
     request = SimpleNamespace(
@@ -80,6 +110,22 @@ def test_clarification_middleware_marks_pending_question():
         "clarification": {"status": "pending", "question": "Which company?"},
     }
     assert len(result.update["messages"]) == 1
+
+
+def test_clarification_middleware_marks_pending_question_async():
+    middleware = ClarificationMiddleware()
+    request = SimpleNamespace(
+        tool_call={"id": "tool-1", "name": "ask_clarification", "args": {"question": "When?"}},
+        state={},
+    )
+
+    async def handle(_):
+        return ToolMessage(content="Clarification needed: When?", tool_call_id="tool-1")
+
+    result = asyncio.run(middleware.awrap_tool_call(request, handle))
+
+    assert isinstance(result, Command)
+    assert result.update["thread_data"]["clarification"]["question"] == "When?"
 
 
 def test_clarification_middleware_clears_pending_question_on_user_reply():

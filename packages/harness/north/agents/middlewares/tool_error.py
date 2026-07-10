@@ -18,3 +18,15 @@ class ToolErrorHandlingMiddleware(AgentMiddleware):
                 name=tool_name,
                 status="error",
             )
+
+    async def awrap_tool_call(self, request, handler):
+        try:
+            return await handler(request)
+        except Exception as exc:
+            tool_name = request.tool_call.get("name", "unknown_tool")
+            return ToolMessage(
+                content=f"Tool '{tool_name}' failed: {exc}",
+                tool_call_id=request.tool_call["id"],
+                name=tool_name,
+                status="error",
+            )
