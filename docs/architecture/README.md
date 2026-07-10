@@ -20,3 +20,6 @@
 
 - [runtime-observability.md](./runtime-observability.md)
   通用 runtime 事件、产品适配边界与安全约束
+
+- [thread-persistence.md](./thread-persistence.md)
+  thread/checkpoint 职责、持久化生命周期与上下文压缩边界
