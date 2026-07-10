@@ -66,15 +66,15 @@ def build_agent(
             if config.summarization_model_name
             else model
         )
-        resolved_middlewares.insert(
-            0,
-            NorthSummarizationMiddleware(
-                model=summary_model,
-                trigger=("messages", config.summarization_trigger_messages),
-                keep=("messages", config.summarization_keep_messages),
-                compaction_hooks=compaction_hooks,
-            ),
-        )
+        summarization_kwargs = {
+            "model": summary_model,
+            "trigger": ("messages", config.summarization_trigger_messages),
+            "keep": ("messages", config.summarization_keep_messages),
+            "compaction_hooks": compaction_hooks,
+        }
+        if config.summarization_summary_prompt is not None:
+            summarization_kwargs["summary_prompt"] = config.summarization_summary_prompt
+        resolved_middlewares.insert(0, NorthSummarizationMiddleware(**summarization_kwargs))
 
     return create_agent(
         model=model,
