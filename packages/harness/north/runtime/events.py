@@ -27,6 +27,7 @@ class RuntimeJournal(AsyncCallbackHandler):
         self._sink = sink
         self._model_started_at: dict[str, float] = {}
         self._tool_started_at: dict[str, float] = {}
+        self._tool_names: dict[str, str] = {}
         self._model_call_index = 0
 
     async def on_chat_model_start(
@@ -106,14 +107,16 @@ class RuntimeJournal(AsyncCallbackHandler):
     ) -> None:
         del kwargs
         call_id = str(run_id)
+        tool_name = str((serialized or {}).get("name") or "unknown")
         self._tool_started_at[call_id] = time.monotonic()
+        self._tool_names[call_id] = tool_name
         await self._emit(
             "tool.started",
             "tool",
             content=_serialize_value(inputs) if inputs is not None else input_str,
             metadata={
                 "call_id": call_id,
-                "tool_name": str((serialized or {}).get("name") or "unknown"),
+                "tool_name": tool_name,
             },
         )
 
@@ -121,12 +124,14 @@ class RuntimeJournal(AsyncCallbackHandler):
         del kwargs
         call_id = str(run_id)
         started_at = self._tool_started_at.pop(call_id, None)
+        tool_name = self._tool_names.pop(call_id, "unknown")
         await self._emit(
             "tool.completed",
             "tool",
             content=_serialize_value(output),
             metadata={
                 "call_id": call_id,
+                "tool_name": tool_name,
                 "latency_ms": int((time.monotonic() - started_at) * 1000)
                 if started_at
                 else None,
@@ -143,12 +148,14 @@ class RuntimeJournal(AsyncCallbackHandler):
         del kwargs
         call_id = str(run_id)
         started_at = self._tool_started_at.pop(call_id, None)
+        tool_name = self._tool_names.pop(call_id, "unknown")
         await self._emit(
             "tool.error",
             "error",
             content=str(error),
             metadata={
                 "call_id": call_id,
+                "tool_name": tool_name,
                 "error_type": type(error).__name__,
                 "latency_ms": int((time.monotonic() - started_at) * 1000)
                 if started_at

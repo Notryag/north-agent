@@ -71,6 +71,7 @@ async def _assert_runtime_journal_events() -> None:
     assert events[2].metadata["call_id"] == str(tool_run_id)
     assert events[2].content == {"title": "提交周报"}
     assert events[3].metadata["call_id"] == str(tool_run_id)
+    assert events[3].metadata["tool_name"] == "create_task"
 
 
 def test_invoke_agent_once_merges_runtime_journal_with_existing_callbacks() -> None:
