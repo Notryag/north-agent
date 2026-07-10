@@ -12,6 +12,7 @@ from ..state import ThreadState
 from ..tools import get_builtin_tools
 from .runs import DisconnectMode, RunConflictError, RunManager, RunRecord, RunStatus
 from .invoke import invoke_agent_once
+from .events import RuntimeEvent, RuntimeEventSink, RuntimeJournal
 from .service import RuntimeService
 from .stream_bridge import MemoryStreamBridge
 
@@ -75,6 +76,9 @@ __all__ = [
     "RunRecord",
     "RunStatus",
     "RuntimeService",
+    "RuntimeEvent",
+    "RuntimeEventSink",
+    "RuntimeJournal",
     "get_checkpointer",
     "get_middlewares",
     "get_skills",

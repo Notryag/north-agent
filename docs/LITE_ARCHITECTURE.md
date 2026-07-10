@@ -31,3 +31,6 @@
 
 - [architecture/runtime-boundaries.md](D:/workspace/github/deerflow-lite/docs/architecture/runtime-boundaries.md)
   当前模块边界、状态职责、runtime 保护与不该做的事
+
+- [architecture/runtime-observability.md](./architecture/runtime-observability.md)
+  通用 runtime 事件、产品适配边界与安全约束
