@@ -1,6 +1,7 @@
 """Application package for the DeerFlow-lite demo."""
 
 from .agent import build_agent
+from .agents.middlewares import CompactionEvent, CompactionHook, NorthSummarizationMiddleware
 from .checkpointer import CheckpointerConfig, get_default_checkpointer, make_checkpointer
 from .client import AppClient, StreamEvent
 from .config import AppConfig, load_environment
@@ -22,6 +23,8 @@ from .tools import get_builtin_tools
 
 __all__ = [
     "CheckpointerConfig",
+    "CompactionEvent",
+    "CompactionHook",
     "AppClient",
     "AppConfig",
     "SkillSpec",
@@ -29,6 +32,7 @@ __all__ = [
     "RuntimeEvent",
     "RuntimeEventSink",
     "RuntimeJournal",
+    "NorthSummarizationMiddleware",
     "ThreadState",
     "build_agent",
     "get_checkpointer",

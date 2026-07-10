@@ -32,3 +32,8 @@ The target design adapts DeerFlow's summarization middleware:
    natural-language summary.
 
 Compaction changes model context, not the user's visible conversation history.
+
+North exposes this through `AppConfig.summarization_*`, `NorthSummarizationMiddleware`, and
+`CompactionHook`. The middleware reuses LangChain's safe cutoff selection, writes the latest
+summary to the `summary_text` state channel, retains recent complete message groups, and invokes
+host hooks after summary generation. Hook failures are logged and do not fail the agent run.

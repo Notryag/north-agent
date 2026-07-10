@@ -7,6 +7,7 @@ from langchain.chat_models import init_chat_model
 from langchain_core.language_models.chat_models import BaseChatModel
 
 from .config import AppConfig
+from .agents.middlewares import CompactionHook, NorthSummarizationMiddleware
 from .runtime import (
     get_checkpointer as resolve_checkpointer,
     get_middlewares as resolve_middlewares,
@@ -45,6 +46,7 @@ def build_agent(
     middlewares=None,
     checkpointer=None,
     skills: Sequence[str] | None = None,
+    compaction_hooks: list[CompactionHook] | None = None,
 ):
     model = create_chat_model(
         name=config.model_name,
@@ -55,10 +57,29 @@ def build_agent(
     if not _supports_tool_binding(model):
         resolved_tools = []
 
+    resolved_middlewares = list(
+        middlewares if middlewares is not None else resolve_middlewares(config)
+    )
+    if config.summarization_enabled:
+        summary_model = (
+            create_chat_model(config.summarization_model_name)
+            if config.summarization_model_name
+            else model
+        )
+        resolved_middlewares.insert(
+            0,
+            NorthSummarizationMiddleware(
+                model=summary_model,
+                trigger=("messages", config.summarization_trigger_messages),
+                keep=("messages", config.summarization_keep_messages),
+                compaction_hooks=compaction_hooks,
+            ),
+        )
+
     return create_agent(
         model=model,
         tools=resolved_tools,
-        middleware=middlewares if middlewares is not None else resolve_middlewares(config),
+        middleware=resolved_middlewares,
         system_prompt=resolve_system_prompt(config, skills=resolved_skills),
         state_schema=get_state_schema(),
         checkpointer=checkpointer if checkpointer is not None else resolve_checkpointer(config),

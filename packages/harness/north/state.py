@@ -26,3 +26,4 @@ class ThreadState(AgentState):
     artifacts: NotRequired[list[str]]
     thread_data: NotRequired[dict[str, Any] | None]
     uploaded_files: NotRequired[list[dict] | None]
+    summary_text: NotRequired[str | None]

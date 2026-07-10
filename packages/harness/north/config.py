@@ -66,6 +66,10 @@ class AppConfig:
     recursion_limit: int = 50
     skills_dir: Path = PROJECT_ROOT / "skills"
     enabled_skills: tuple[str, ...] = ()
+    summarization_enabled: bool = False
+    summarization_model_name: str | None = None
+    summarization_trigger_messages: int = 40
+    summarization_keep_messages: int = 12
 
     @classmethod
     def from_env(cls) -> "AppConfig":
@@ -77,6 +81,10 @@ class AppConfig:
             recursion_limit=_get_int("APP_RECURSION_LIMIT", 50),
             skills_dir=Path(os.getenv("APP_SKILLS_DIR", PROJECT_ROOT / "skills")),
             enabled_skills=_get_csv("APP_SKILLS"),
+            summarization_enabled=_get_bool("APP_SUMMARIZATION_ENABLED", False),
+            summarization_model_name=os.getenv("APP_SUMMARIZATION_MODEL_NAME"),
+            summarization_trigger_messages=_get_int("APP_SUMMARIZATION_TRIGGER_MESSAGES", 40),
+            summarization_keep_messages=_get_int("APP_SUMMARIZATION_KEEP_MESSAGES", 12),
         )
 
     def validate(self) -> None:
