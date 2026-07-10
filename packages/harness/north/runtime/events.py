@@ -26,6 +26,7 @@ class RuntimeJournal(AsyncCallbackHandler):
     def __init__(self, sink: RuntimeEventSink) -> None:
         self._sink = sink
         self._model_started_at: dict[str, float] = {}
+        self._model_call_indexes: dict[str, int] = {}
         self._tool_started_at: dict[str, float] = {}
         self._tool_names: dict[str, str] = {}
         self._model_call_index = 0
@@ -43,6 +44,7 @@ class RuntimeJournal(AsyncCallbackHandler):
         call_id = str(run_id)
         self._model_started_at[call_id] = time.monotonic()
         self._model_call_index += 1
+        self._model_call_indexes[call_id] = self._model_call_index
         await self._emit(
             "model.started",
             "model",
@@ -64,6 +66,7 @@ class RuntimeJournal(AsyncCallbackHandler):
         del kwargs
         call_id = str(run_id)
         started_at = self._model_started_at.pop(call_id, None)
+        call_index = self._model_call_indexes.pop(call_id, None)
         latency_ms = int((time.monotonic() - started_at) * 1000) if started_at else None
         for message in _response_messages(response):
             usage = getattr(message, "usage_metadata", None)
@@ -73,6 +76,7 @@ class RuntimeJournal(AsyncCallbackHandler):
                 content=_serialize_value(message),
                 metadata={
                     "call_id": call_id,
+                    "call_index": call_index,
                     "caller": _identify_caller(tags),
                     "latency_ms": latency_ms,
                     "usage": dict(usage) if isinstance(usage, Mapping) else {},
@@ -89,11 +93,16 @@ class RuntimeJournal(AsyncCallbackHandler):
         del kwargs
         call_id = str(run_id)
         self._model_started_at.pop(call_id, None)
+        call_index = self._model_call_indexes.pop(call_id, None)
         await self._emit(
             "model.error",
             "error",
             content=str(error),
-            metadata={"call_id": call_id, "error_type": type(error).__name__},
+            metadata={
+                "call_id": call_id,
+                "call_index": call_index,
+                "error_type": type(error).__name__,
+            },
         )
 
     async def on_tool_start(
