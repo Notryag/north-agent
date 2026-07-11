@@ -4,7 +4,13 @@ from uuid import uuid4
 
 from langchain_core.messages import AIMessage
 
-from north import RuntimeEvent, RuntimeJournal, invoke_agent_once
+from north import (
+    RuntimeEvent,
+    RuntimeJournal,
+    RuntimeUsageAccumulator,
+    invoke_agent_once,
+    normalize_token_usage,
+)
 
 
 def test_runtime_journal_emits_correlated_model_and_tool_events() -> None:
@@ -73,6 +79,55 @@ async def _assert_runtime_journal_events() -> None:
     assert events[2].content == {"title": "提交周报"}
     assert events[3].metadata["call_id"] == str(tool_run_id)
     assert events[3].metadata["tool_name"] == "create_task"
+
+
+def test_normalizes_provider_usage_aliases_and_derives_total() -> None:
+    usage = normalize_token_usage(
+        {"token_usage": {"prompt_tokens": 12, "completion_tokens": 3}}
+    )
+
+    assert usage is not None
+    assert usage.as_dict() == {
+        "input_tokens": 12,
+        "output_tokens": 3,
+        "total_tokens": 15,
+    }
+
+
+def test_runtime_usage_accumulator_sums_each_model_call_once() -> None:
+    asyncio.run(_assert_runtime_usage_accumulator())
+
+
+async def _assert_runtime_usage_accumulator() -> None:
+    accumulator = RuntimeUsageAccumulator()
+    first = RuntimeEvent(
+        "model.completed",
+        "model",
+        metadata={
+            "call_id": "call-1",
+            "usage": {"input_tokens": 10, "output_tokens": 2, "total_tokens": 12},
+        },
+    )
+    await accumulator(first)
+    await accumulator(first)
+    await accumulator(
+        RuntimeEvent(
+            "model.completed",
+            "model",
+            metadata={
+                "call_id": "call-2",
+                "usage": {"prompt_tokens": 7, "completion_tokens": 1},
+            },
+        )
+    )
+
+    assert accumulator.total is not None
+    assert accumulator.total.as_dict() == {
+        "input_tokens": 17,
+        "output_tokens": 3,
+        "total_tokens": 20,
+    }
+    assert [call["call_id"] for call in accumulator.calls] == ["call-1", "call-2"]
 
 
 def test_invoke_agent_once_merges_runtime_journal_with_existing_callbacks() -> None:

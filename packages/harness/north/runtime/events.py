@@ -20,6 +20,53 @@ class RuntimeEvent:
 RuntimeEventSink = Callable[[RuntimeEvent], Awaitable[None]]
 
 
+@dataclass(frozen=True, slots=True)
+class TokenUsage:
+    input_tokens: int
+    output_tokens: int
+    total_tokens: int
+
+    def as_dict(self) -> dict[str, int]:
+        return {
+            "input_tokens": self.input_tokens,
+            "output_tokens": self.output_tokens,
+            "total_tokens": self.total_tokens,
+        }
+
+
+class RuntimeUsageAccumulator:
+    """Collect normalized token usage once per model call from runtime events."""
+
+    def __init__(self) -> None:
+        self._calls: dict[str, TokenUsage] = {}
+
+    async def __call__(self, event: RuntimeEvent) -> None:
+        if event.event_type != "model.completed":
+            return
+        call_id = event.metadata.get("call_id")
+        usage = normalize_token_usage(event.metadata.get("usage"))
+        if not isinstance(call_id, str) or not call_id or usage is None:
+            return
+        self._calls.setdefault(call_id, usage)
+
+    @property
+    def calls(self) -> list[dict[str, Any]]:
+        return [
+            {"call_id": call_id, **usage.as_dict()}
+            for call_id, usage in self._calls.items()
+        ]
+
+    @property
+    def total(self) -> TokenUsage | None:
+        if not self._calls:
+            return None
+        return TokenUsage(
+            input_tokens=sum(usage.input_tokens for usage in self._calls.values()),
+            output_tokens=sum(usage.output_tokens for usage in self._calls.values()),
+            total_tokens=sum(usage.total_tokens for usage in self._calls.values()),
+        )
+
+
 class RuntimeJournal(AsyncCallbackHandler):
     """Translate LangChain callbacks into product-neutral runtime events."""
 
@@ -68,8 +115,13 @@ class RuntimeJournal(AsyncCallbackHandler):
         started_at = self._model_started_at.pop(call_id, None)
         call_index = self._model_call_indexes.pop(call_id, None)
         latency_ms = int((time.monotonic() - started_at) * 1000) if started_at else None
-        for message in _response_messages(response):
-            usage = getattr(message, "usage_metadata", None)
+        response_usage = _response_usage(response)
+        for index, message in enumerate(_response_messages(response)):
+            usage = normalize_token_usage(
+                getattr(message, "usage_metadata", None),
+                getattr(message, "response_metadata", None),
+                response_usage if index == 0 else None,
+            )
             await self._emit(
                 "model.completed",
                 "model",
@@ -79,7 +131,7 @@ class RuntimeJournal(AsyncCallbackHandler):
                     "call_index": call_index,
                     "caller": _identify_caller(tags),
                     "latency_ms": latency_ms,
-                    "usage": dict(usage) if isinstance(usage, Mapping) else {},
+                    "usage": usage.as_dict() if usage is not None else {},
                 },
             )
 
@@ -205,6 +257,49 @@ def _response_messages(response: Any) -> list[Any]:
             if message is not None:
                 messages.append(message)
     return messages
+
+
+def _response_usage(response: Any) -> Any:
+    llm_output = getattr(response, "llm_output", None)
+    if not isinstance(llm_output, Mapping):
+        return None
+    return llm_output.get("token_usage") or llm_output.get("usage")
+
+
+def normalize_token_usage(*candidates: Any) -> TokenUsage | None:
+    """Normalize common LangChain and provider token-usage field names."""
+
+    for candidate in candidates:
+        if not isinstance(candidate, Mapping):
+            continue
+        nested = candidate.get("token_usage") or candidate.get("usage")
+        sources = (candidate, nested) if isinstance(nested, Mapping) else (candidate,)
+        for source in sources:
+            input_tokens = _token_count(source, "input_tokens", "prompt_tokens")
+            output_tokens = _token_count(source, "output_tokens", "completion_tokens")
+            total_tokens = _token_count(source, "total_tokens")
+            if input_tokens is None and output_tokens is None and total_tokens is None:
+                continue
+            resolved_input = input_tokens or 0
+            resolved_output = output_tokens or 0
+            return TokenUsage(
+                input_tokens=resolved_input,
+                output_tokens=resolved_output,
+                total_tokens=(
+                    total_tokens
+                    if total_tokens is not None
+                    else resolved_input + resolved_output
+                ),
+            )
+    return None
+
+
+def _token_count(source: Mapping[Any, Any], *names: str) -> int | None:
+    for name in names:
+        value = source.get(name)
+        if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
+            return value
+    return None
 
 
 def _serialize_value(value: Any) -> Any:

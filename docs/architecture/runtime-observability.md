@@ -23,6 +23,11 @@ Model events include a call ID, caller classification, latency, and usage metada
 Tool events include a call ID, tool name, inputs or output, latency, and errors. Call
 IDs let products correlate a tool start with its terminal event.
 
+`north` normalizes model usage to `input_tokens`, `output_tokens`, and `total_tokens`
+across common LangChain and provider field names. `RuntimeUsageAccumulator` aggregates
+the normalized events once per model call, including intermediate tool-selection calls.
+Products own pricing, budgets, tenant attribution, and durable usage storage.
+
 ## Security
 
 The journal does not persist model prompts. Event payloads can still contain sensitive
