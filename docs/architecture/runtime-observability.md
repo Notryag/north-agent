@@ -28,6 +28,12 @@ across common LangChain and provider field names. `RuntimeUsageAccumulator` aggr
 the normalized events once per model call, including intermediate tool-selection calls.
 Products own pricing, budgets, tenant attribution, and durable usage storage.
 
+This is callback-based observability, not agent middleware. `RuntimeJournal` is a
+LangChain callback handler that observes completed provider calls without changing agent
+state or control flow. `RuntimeUsageAccumulator` consumes those runtime events and
+deduplicates usage by `call_id`. Middleware remains reserved for behavior that participates
+in agent execution, such as clarification, compaction, loop protection, or tool-error policy.
+
 ## Security
 
 The journal does not persist model prompts. Event payloads can still contain sensitive
