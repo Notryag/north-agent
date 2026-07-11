@@ -54,16 +54,31 @@ class ClarificationMiddleware(AgentMiddleware):
         if request.tool_call.get("name") != "ask_clarification":
             return result
 
-        question = request.tool_call.get("args", {}).get("question")
+        args = request.tool_call.get("args", {})
+        question = args.get("question")
         if not isinstance(question, str) or not question:
             question = "More information is required to continue."
+
+        response_kind = args.get("response_kind", "free_text")
+        if response_kind not in {"free_text", "single_choice"}:
+            response_kind = "free_text"
+        options = args.get("options")
+        if not isinstance(options, list):
+            options = []
+        options = [option for option in options if isinstance(option, str) and option.strip()][:10]
+        clarification = {
+            "status": "pending",
+            "question": question,
+            "response_kind": response_kind,
+            "options": options if response_kind == "single_choice" else [],
+        }
 
         if isinstance(result, ToolMessage):
             return Command(
                 update={
                     "thread_data": _merge_thread_data(
                         request.state.get("thread_data") if isinstance(request.state, dict) else None,
-                        {"clarification": {"status": "pending", "question": question}},
+                        {"clarification": clarification},
                     ),
                     "messages": [result],
                 }
@@ -73,7 +88,7 @@ class ClarificationMiddleware(AgentMiddleware):
             update = deepcopy(result.update)
             update["thread_data"] = _merge_thread_data(
                 request.state.get("thread_data") if isinstance(request.state, dict) else None,
-                {"clarification": {"status": "pending", "question": question}},
+                {"clarification": clarification},
             )
             return Command(graph=result.graph, update=update, resume=result.resume, goto=result.goto)
 

@@ -42,6 +42,12 @@ def test_runtime_returns_builtin_tools():
 def test_runtime_injected_tool_schemas_are_json_serializable():
     tools = {tool.name: tool for tool in get_builtin_tools()}
 
+    assert set(tools["ask_clarification"].args) == {
+        "question",
+        "response_kind",
+        "options",
+    }
+
     assert tools["read_file"].args == {
         "path": {"title": "Path", "type": "string"},
     }

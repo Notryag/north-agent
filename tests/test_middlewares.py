@@ -107,7 +107,12 @@ def test_clarification_middleware_marks_pending_question():
     assert isinstance(result, Command)
     assert result.update["thread_data"] == {
         "source": "user",
-        "clarification": {"status": "pending", "question": "Which company?"},
+        "clarification": {
+            "status": "pending",
+            "question": "Which company?",
+            "response_kind": "free_text",
+            "options": [],
+        },
     }
     assert len(result.update["messages"]) == 1
 
@@ -126,6 +131,34 @@ def test_clarification_middleware_marks_pending_question_async():
 
     assert isinstance(result, Command)
     assert result.update["thread_data"]["clarification"]["question"] == "When?"
+
+
+def test_clarification_middleware_preserves_structured_choices():
+    middleware = ClarificationMiddleware()
+    request = SimpleNamespace(
+        tool_call={
+            "id": "tool-1",
+            "name": "ask_clarification",
+            "args": {
+                "question": "When should it start?",
+                "response_kind": "single_choice",
+                "options": ["Tomorrow 09:00", "Tomorrow 14:00"],
+            },
+        },
+        state={},
+    )
+
+    result = middleware.wrap_tool_call(
+        request,
+        lambda _: ToolMessage(content="Choose a time", tool_call_id="tool-1"),
+    )
+
+    assert result.update["thread_data"]["clarification"] == {
+        "status": "pending",
+        "question": "When should it start?",
+        "response_kind": "single_choice",
+        "options": ["Tomorrow 09:00", "Tomorrow 14:00"],
+    }
 
 
 def test_clarification_middleware_clears_pending_question_on_user_reply():
