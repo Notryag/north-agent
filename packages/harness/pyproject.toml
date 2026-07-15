@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "north"
 version = "0.1.0"
-description = "Reusable agent harness extracted from deerflow-lite."
+description = "Reusable agent runtime for tools, skills, events, and durable context."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

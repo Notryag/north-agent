@@ -1,10 +1,10 @@
-# DeerFlow Lite TODO
+# North Agent TODO
 
 这份文件只做一件事：
 
 > 维护当前阶段可直接执行的任务清单。
 
-已完成事项归档到 [TODO_ARCHIVE](D:/workspace/github/deerflow-lite/docs/TODO_ARCHIVE.md)。
+已完成事项归档到 [TODO_ARCHIVE](D:/workspace/github/north-agent/docs/TODO_ARCHIVE.md)。
 
 如果需要看阶段原因、优先级来源、长期演进顺序，请看 `docs/LITE_EVOLUTION_PLAN.md`。
 

@@ -3,10 +3,10 @@ requires = ["hatchling>=1.27.0"]
 build-backend = "hatchling.build"
 
 [project]
-name = "deerflow-lite"
+name = "north-agent"
 version = "0.1.0"
-description = "A minimal DeerFlow-style app and agent factory demo."
-readme = "readme.md"
+description = "A reusable Python agent runtime for tools, skills, events, and durable context."
+readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "north",
@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.scripts]
-deerflow-lite = "app.cli:main"
+north-agent = "app.cli:main"
 
 [project.optional-dependencies]
 dev = [

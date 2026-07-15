@@ -2,7 +2,7 @@
 
 ## 定位
 
-`deerflow-lite` 的总体方向不变，始终是朝着简化版 DeerFlow runtime 演进。
+`north-agent` 的总体方向不变，始终是朝着简化版 DeerFlow runtime 演进。
 
 这里要区分两层目标：
 

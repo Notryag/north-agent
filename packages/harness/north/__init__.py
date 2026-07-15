@@ -1,4 +1,4 @@
-"""Application package for the DeerFlow-lite demo."""
+"""Reusable runtime primitives for North Agent host applications."""
 
 from .agent import build_agent
 from .agents.middlewares import CompactionEvent, CompactionHook, NorthSummarizationMiddleware

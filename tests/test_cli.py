@@ -57,7 +57,7 @@ def test_cli_prints_chat_artifacts(monkeypatch, capsys):
     monkeypatch.setattr("app.cli.AppConfig.validate", lambda self: None)
     monkeypatch.setattr(
         "sys.argv",
-        ["deerflow-lite", "--thread-id", "thread-1", "--skill", "writer", "--file", "notes.md", "hello"],
+        ["north-agent", "--thread-id", "thread-1", "--skill", "writer", "--file", "notes.md", "hello"],
     )
 
     assert main() == 0
@@ -80,7 +80,7 @@ def test_cli_stream_prints_final_artifacts(monkeypatch, capsys):
         classmethod(lambda cls: AppConfig(model_name="openai:gpt-4o-mini")),
     )
     monkeypatch.setattr("app.cli.AppConfig.validate", lambda self: None)
-    monkeypatch.setattr("sys.argv", ["deerflow-lite", "--stream", "hello"])
+    monkeypatch.setattr("sys.argv", ["north-agent", "--stream", "hello"])
 
     assert main() == 0
 
@@ -112,7 +112,7 @@ def test_cli_stream_show_events_prints_tool_and_values_events(monkeypatch, capsy
         classmethod(lambda cls: AppConfig(model_name="openai:gpt-4o-mini")),
     )
     monkeypatch.setattr("app.cli.AppConfig.validate", lambda self: None)
-    monkeypatch.setattr("sys.argv", ["deerflow-lite", "--stream", "--show-events", "hello"])
+    monkeypatch.setattr("sys.argv", ["north-agent", "--stream", "--show-events", "hello"])
 
     assert main() == 0
 

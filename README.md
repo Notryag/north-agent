@@ -1,0 +1,146 @@
+# North Agent
+
+North Agent 是一个可嵌入 Python 产品的轻量 Agent Runtime。它把模型调用、工具执行、
+Skills、运行事件和上下文持久化收敛到稳定边界，让宿主应用专注于业务、身份、数据和界面。
+
+项目源于对 DeerFlow Runtime 分层的提炼，但不复制 DeerFlow 的 Gateway 或产品层。Dayboard
+正在使用 `north` 作为 Agent 执行核心。
+
+## 核心能力
+
+- 基于 LangChain / LangGraph 的 Agent 装配与单次调用
+- 同步聊天、流式输出和独立 Run 生命周期
+- 工具注册、异步中间件、错误策略与循环检测
+- 本地 Skill 发现、目录过滤和按需加载
+- Memory、SQLite、PostgreSQL Checkpointer
+- 上下文摘要压缩与宿主归档 Hook
+- 模型及工具调用事件、Token 用量归一化
+- 上传文件、Workspace、Output 等资源 URI
+
+## 架构边界
+
+```text
+宿主应用
+  -> north public API
+  -> Agent / Runtime / Middleware
+  -> LangChain + LangGraph
+  -> Model / Tools / Checkpointer
+
+RuntimeEventSink
+  <- 模型与工具运行事件
+  -> 宿主自己的数据库、SSE 或日志系统
+```
+
+North Agent 负责通用运行能力，但不负责：
+
+- 用户、租户、权限和会话产品模型
+- HTTP Gateway、页面或面向用户的文案
+- 产品数据库、计费规则和 Token 预算
+- 具体业务工具及其领域对象
+
+## 快速开始
+
+要求 Python 3.11+ 和 [uv](https://docs.astral.sh/uv/)。
+
+```bash
+git clone https://github.com/Notryag/north-agent.git
+cd north-agent
+cp .env.example .env
+uv sync
+```
+
+最小环境变量：
+
+```dotenv
+OPENAI_API_KEY=your_openai_api_key
+OPENAI_BASE_URL=https://api.openai.com/v1
+APP_MODEL_NAME=openai:gpt-4o-mini
+```
+
+运行 CLI：
+
+```bash
+uv run north-agent "解释一下 Agent Runtime 的职责"
+uv run north-agent --stream --show-events "调研 LangGraph 的流式事件设计"
+```
+
+## Python 调用
+
+```python
+from north import AppClient, AppConfig
+
+config = AppConfig.from_env()
+config.validate()
+
+client = AppClient(config)
+response = client.chat("给我一个工具调用可靠性检查清单")
+print(response)
+```
+
+产品服务可以使用更窄的单次调用入口，并注入自己的工具、Checkpointer 和事件接收器：
+
+```python
+from north import invoke_agent_once
+
+result = await invoke_agent_once(
+    agent_factory=lambda: product_agent,
+    graph_input={"messages": product_messages},
+    config={"configurable": {"thread_id": thread_id}},
+    context=runtime_context,
+    event_sink=event_sink,
+)
+```
+
+## 作为依赖使用
+
+`north` 尚未发布到 PyPI。使用方应固定 Git commit，保证构建可复现：
+
+```toml
+[project]
+dependencies = ["north[postgres]"]
+
+[tool.uv.sources]
+north = {
+  git = "https://github.com/Notryag/north-agent.git",
+  rev = "<commit-sha>",
+  subdirectory = "packages/harness"
+}
+```
+
+可选依赖：
+
+- `north[sqlite]`：本地持久化 Checkpointer
+- `north[postgres]`：服务端 PostgreSQL Checkpointer
+
+## 项目结构
+
+```text
+packages/harness/north/   可复用 Runtime 包
+app/                      示例 CLI 宿主
+skills/                   示例 Skills
+tests/                    Runtime 与边界测试
+docs/                     架构、演进计划和设计记录
+```
+
+重要入口：
+
+- `north.invoke_agent_once`：产品服务的一次性 Agent 调用
+- `north.AppClient`：聊天与流式客户端
+- `north.RuntimeJournal`：模型和工具运行事件
+- `north.make_checkpointer`：Memory、SQLite、PostgreSQL 持久化
+- `north.NorthSummarizationMiddleware`：上下文压缩
+
+## 开发
+
+```bash
+uv sync --all-extras
+uv run pytest -q
+```
+
+架构边界见 [docs/architecture](./docs/architecture/README.md)，当前任务见
+[docs/TODO.md](./docs/TODO.md)。
+
+## 状态
+
+North Agent 仍处于早期开发阶段。公开接口会继续围绕真实宿主应用收敛；提交兼容性要求较高
+的集成前，请固定经过验证的 commit。

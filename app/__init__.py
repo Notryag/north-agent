@@ -1,4 +1,4 @@
-"""Host application package for the deerflow-lite CLI."""
+"""Example host application for the North Agent runtime."""
 
 from .cli import main
 

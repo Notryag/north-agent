@@ -132,32 +132,6 @@ wheels = [
 ]
 
 [[package]]
-name = "deerflow-lite"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "langchain" },
-    { name = "langchain-openai" },
-    { name = "north" },
-    { name = "python-dotenv" },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "pytest" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "langchain", specifier = ">=1.0.0,<2.0.0" },
-    { name = "langchain-openai", specifier = ">=1.0.0,<2.0.0" },
-    { name = "north", directory = "packages/harness" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0,<9.0.0" },
-    { name = "python-dotenv", specifier = ">=1.0.0,<2.0.0" },
-]
-provides-extras = ["dev"]
-
-[[package]]
 name = "distro"
 version = "1.9.0"
 source = { registry = "https://pypi.org/simple" }
@@ -475,6 +449,32 @@ requires-dist = [
     { name = "python-dotenv", specifier = ">=1.0.0,<2.0.0" },
 ]
 provides-extras = ["sqlite", "postgres"]
+
+[[package]]
+name = "north-agent"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "langchain" },
+    { name = "langchain-openai" },
+    { name = "north" },
+    { name = "python-dotenv" },
+]
+
+[package.optional-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "langchain", specifier = ">=1.0.0,<2.0.0" },
+    { name = "langchain-openai", specifier = ">=1.0.0,<2.0.0" },
+    { name = "north", directory = "packages/harness" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0,<9.0.0" },
+    { name = "python-dotenv", specifier = ">=1.0.0,<2.0.0" },
+]
+provides-extras = ["dev"]
 
 [[package]]
 name = "openai"

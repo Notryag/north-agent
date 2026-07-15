@@ -41,8 +41,8 @@ def print_artifacts(artifacts: tuple[str, ...]) -> None:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Run the DeerFlow-lite demo app.")
-    parser.add_argument("message", nargs="?", default="用一句话解释什么是 DeerFlow")
+    parser = argparse.ArgumentParser(description="Run the North Agent example CLI.")
+    parser.add_argument("message", nargs="?", default="用一句话解释什么是 Agent Runtime")
     parser.add_argument("--thread-id", dest="thread_id")
     parser.add_argument("--stream", action="store_true", help="Print AI message chunks as they stream.")
     parser.add_argument(
