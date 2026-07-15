@@ -3,9 +3,6 @@
 North Agent 是一个可嵌入 Python 产品的轻量 Agent Runtime。它把模型调用、工具执行、
 Skills、运行事件和上下文持久化收敛到稳定边界，让宿主应用专注于业务、身份、数据和界面。
 
-项目源于对 DeerFlow Runtime 分层的提炼，但不复制 DeerFlow 的 Gateway 或产品层。Dayboard
-正在使用 `north` 作为 Agent 执行核心。
-
 ## 核心能力
 
 - 基于 LangChain / LangGraph 的 Agent 装配与单次调用
@@ -144,3 +141,9 @@ uv run pytest -q
 
 North Agent 仍处于早期开发阶段。公开接口会继续围绕真实宿主应用收敛；提交兼容性要求较高
 的集成前，请固定经过验证的 commit。
+
+## 参考项目
+
+- [DeerFlow](https://github.com/bytedance/deer-flow)
+- [LangGraph](https://github.com/langchain-ai/langgraph)
+- [LangChain](https://github.com/langchain-ai/langchain)
