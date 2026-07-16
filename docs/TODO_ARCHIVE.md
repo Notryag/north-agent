@@ -154,6 +154,18 @@
 
 ### P0 Harness/App 架构收敛
 
+- [x] H1. 固化 `packages/harness/north` 的公开边界
+  目标：
+  明确 `north` 的稳定公开接口，只把真正可复用的 harness 能力放进包里。
+  完成标准：
+  顶层导出按宿主入口、持久化、上下文和可观测性收敛，并由契约测试锁定。
+
+- [x] H3. 分链迁移并删除兼容层
+  目标：
+  完成 Harness/App 分层迁移，不保留长期双实现。
+  完成标准：
+  `app/` 只保留示例 CLI；所有可复用实现均位于 `packages/harness/north/`。
+
 - [x] H2. 去掉 `north` 对当前仓库固定路径的隐式依赖
   目标：
   让 `north` 不再把仓库根、skills 目录、thread 目录当成内部常量假设。

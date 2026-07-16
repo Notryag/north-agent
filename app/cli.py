@@ -3,8 +3,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from north.client import AppClient, StreamEvent
-from north.config import AppConfig
+from north import AppClient, AppConfig, StreamEvent
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent

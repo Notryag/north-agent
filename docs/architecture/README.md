@@ -23,3 +23,6 @@
 
 - [thread-persistence.md](./thread-persistence.md)
   thread/checkpoint 职责、持久化生命周期与上下文压缩边界
+
+- [public-api.md](./public-api.md)
+  稳定顶层接口、宿主导入方式与内部装配边界
