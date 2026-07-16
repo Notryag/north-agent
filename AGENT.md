@@ -4,13 +4,15 @@
 
 默认先读这份文件，不要先把整个 `docs/` 目录读一遍。
 
-## 当前主线
+## 当前状态
 
-当前阶段的北极星闭环是：
+以下两个最小闭环已经完成：
 
+> Web 调研 -> 信息整理 -> Markdown 报告 -> artifact 输出
+>
 > 文件输入 -> 文件发现 -> 文件读取 -> Markdown 报告 -> artifact 输出
 
-上一阶段的 Web 调研闭环已经打通；当前实现优先服务文件分析闭环，并保持 Web 调研能力稳定。
+当前没有预设功能任务。新工作应来自真实宿主问题，并保持已有闭环稳定。
 
 ## 最小阅读路径
 
@@ -25,7 +27,6 @@
 - 可复用的 tools、outputs、threads、skills 和 middleware 均位于 `packages/harness/north/`
 - `app/` 当前只保留示例 CLI 宿主入口
 - 已完成任务已归档到 `docs/TODO_ARCHIVE.md`
-- 不要假设 repo 里已经有完整 DeerFlow 目录结构
 
 ## 当前 prompt 现状
 
@@ -36,11 +37,8 @@
 
 ## 当前最重要的 active work
 
-优先看 `docs/TODO.md` 的这些任务：
-
-- `T13` 端到端 smoke test
-- `T15` 文件分析 skill 端到端说明
-- `T16` 代码执行前置边界
+当前没有 Active TODO。优先检查 Dayboard 等真实宿主暴露的 Runtime 契约问题；不要直接实现
+Parked 能力。代码执行只有满足 `docs/architecture/code-execution-boundary.md` 的决策门槛后才开始。
 
 ## 文档分工
 

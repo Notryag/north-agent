@@ -4,13 +4,13 @@
 
 ## 最小阅读路径
 
-1. 做具体任务时先看 [TODO](D:/workspace/github/north-agent/docs/TODO.md)
+1. 做具体任务时先看 [TODO](../TODO.md)
 2. 只有当你需要判断优先级或阶段顺序时，再看本目录
 
 ## 文件分工
 
-- [principles.md](D:/workspace/github/north-agent/docs/plan/principles.md)
+- [principles.md](./principles.md)
   为什么当前阶段先做这些，以及判断一项工作值不值得做
 
-- [roadmap.md](D:/workspace/github/north-agent/docs/plan/roadmap.md)
+- [roadmap.md](./roadmap.md)
   当前阶段怎么排，什么先做，什么暂缓，什么时候退出当前阶段

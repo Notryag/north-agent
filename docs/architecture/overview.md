@@ -2,86 +2,68 @@
 
 ## 定位
 
-`north-agent` 的总体方向不变，始终是朝着简化版 DeerFlow runtime 演进。
+North Agent 是可嵌入 Python 产品的轻量 Agent Runtime。它负责模型、工具、Skill、运行事件、
+上下文和持久化的通用执行契约，不负责宿主产品的身份、权限、业务数据、计费或界面。
 
-这里要区分两层目标：
+项目不是一次性 Agent Demo，也不以复制其他 Agent 产品的完整功能为目标。能力演进由真实宿主
+任务推动，并沉淀为可复用 Runtime 边界。
 
-- 最终目标：
-  逐步逼近 DeerFlow 的核心能力，而不是做一个一次性的 agent demo
-
-- 当前阶段目标：
-  用一个最容易形成闭环、又最能逼出 DeerFlow 核心能力的任务推进实现
-
-当前选定的阶段性牵引任务是：
-
-> Web 调研 -> 信息整理 -> 生成 Markdown 报告 -> artifact 输出
-
-这个任务只是架构完善过程中的节点，不是产品方向分叉，更不是最终边界。
-
-## 为什么当前阶段选 Web 调研
-
-1. 不需要先做上传文件链路
-2. 不需要先做安全沙箱
-3. 可以直接逼出工具调用、状态管理、报告输出、artifact 展示这些核心能力
-4. 跑通之后，能平滑扩展到学术综述、技术分析、文件分析、报告生成和更复杂工作流
-
-## 总体架构方向
+## 总体架构
 
 ```text
-CLI / Python caller
-  -> app.cli / main.py
-  -> north.client.AppClient
-  -> north.runtime
-  -> north.agent.build_agent(...)
-  -> LangChain / LangGraph agent graph
-  -> state + tools + middleware + checkpointer
+Host CLI / API / Worker
+  -> north public API
+  -> Agent / Runtime / Middleware
+  -> LangChain + LangGraph
+  -> Model / Tools / Checkpointer
+
+Runtime Event Sink
+  <- model/tool lifecycle and token usage
+  -> host database, logs, metrics or stream transport
 ```
 
-核心设计原则：
+依赖方向始终为 `host -> north`。North 不反向读取宿主业务模型，也不推断宿主仓库路径。
 
-> 对外 API 保持简单稳定，复杂度被收敛到 runtime 组装层和状态模型中。
+## 稳定边界
 
-## 当前阶段真正要逼出来的核心能力
+### 宿主装配
 
-### 工具驱动的多步执行
+- `AppConfig` 承载 Runtime 配置和宿主选择的路径
+- `build_agent` 装配模型、工具、Skill、Middleware 和 Checkpointer
+- `invoke_agent_once` 提供产品无关的单次执行入口
+- `AppClient` 提供示例聊天和流式 Run 封装
 
-- 搜索
-- 抓取
-- 提炼
-- 生成报告
-- 返回 artifact
+### 运行状态
 
-### 线程状态
+- `thread_id` 隔离持续任务的 Checkpoint 和文件资源
+- `ThreadState` 只包含 Runtime 共享状态，不承载产品会话模型
+- 上传、Workspace、Output 和 Memory 通过 Resource URI 暴露
 
-同一个 `thread_id` 要能承载持续执行过程，而不是一次调用就结束。
+### 可观测性
 
-### 流式可观测性
+- 模型与工具调用转换为稳定 Runtime Event
+- Token 用量在 Runtime 层归一化
+- 宿主决定事件持久化、传输、审计和计费方式
 
-`AppClient.stream()` 最终应承担统一事件协议：
+### 运行保护
 
-- `ai`
-- `tool`
-- `values`
-- `end`
-- `error`
+- 工具错误转换为可恢复结果
+- 重复工具循环可以截断
+- 缺少关键信息时通过结构化澄清暂停
+- 上下文摘要可通过 Hook 交给宿主归档
 
-### 运行时保护
-
-当前阶段最值得保留的 middleware 方向依然是：
-
-1. `ToolErrorHandlingMiddleware`
-2. `LoopDetectionMiddleware`
-3. `ClarificationMiddleware`
-
-但当前 demo 实现不应继续作为默认 runtime 行为存在，需要围绕真实工具执行语义重建后再默认启用。
-
-## 当前阶段的任务闭环
+## 已验证任务闭环
 
 ```text
-用户给调研问题
-  -> agent 调用 web_search
-  -> agent 调用 web_fetch / 页面读取
-  -> agent 整理信息
-  -> agent 写出 report.md
-  -> agent 通过 present_files 返回 artifact
+Web question -> search/fetch -> Markdown report -> Artifact
+Uploaded file -> discover/read -> inline answer or report -> Artifact
 ```
+
+这些闭环用于验证 Runtime 契约，不限定宿主产品方向。
+
+## 演进规则
+
+1. 新能力必须由可复现的宿主问题或任务闭环证明价值
+2. 产品特有逻辑留在宿主，通用执行契约才进入 Harness
+3. 公开 API、持久化、并发和执行边界优先保持明确和可测试
+4. Sandbox、Memory 产品模型、MCP 和 Subagent 不因参考项目存在而自动进入路线图

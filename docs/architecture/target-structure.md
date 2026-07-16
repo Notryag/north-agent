@@ -2,7 +2,7 @@
 
 ## 最终目标目录结构
 
-`north-agent` 的目录结构应逐步朝 `deer-flow/backend/packages/harness/` 的分层方向靠拢：
+`north-agent` 使用 Harness/App 分层：
 
 - `packages/harness/` 放可复用 harness 包
 - `app/` 只放当前仓库自己的 CLI / API / 默认配置注入

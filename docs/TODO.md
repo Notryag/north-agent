@@ -4,7 +4,7 @@
 
 > 维护当前阶段可直接执行的任务清单。
 
-已完成事项归档到 [TODO_ARCHIVE](D:/workspace/github/north-agent/docs/TODO_ARCHIVE.md)。
+已完成事项归档到 [TODO_ARCHIVE](./TODO_ARCHIVE.md)。
 
 如果需要看阶段原因、优先级来源、长期演进顺序，请看 `docs/LITE_EVOLUTION_PLAN.md`。
 
@@ -12,17 +12,9 @@
 
 ## 快速索引
 
-- 做端到端验证：
-  看 `T13`
-
-- 做文件分析闭环：
-  看 `T13`、`T15`
-
-- 做代码执行准备：
-  看 `T16`
-
-- 查已完成历史：
-  看 `docs/TODO_ARCHIVE.md`
+- 查已完成历史：看 [TODO_ARCHIVE](./TODO_ARCHIVE.md)
+- 判断下一阶段：看 [roadmap](./plan/roadmap.md)
+- 判断代码执行能否开始：看 [code-execution-boundary](./architecture/code-execution-boundary.md)
 
 ## 使用规则
 
@@ -50,11 +42,9 @@
 
 ## 当前阶段目标
 
-上一阶段已经打通：
+以下闭环已经打通：
 
 > Web 调研 -> 信息整理 -> Markdown 报告 -> artifact 输出
-
-当前阶段开始围绕这个基础自然扩展：
 
 > 文件输入 -> 文件发现 -> 文件读取 -> Markdown 报告 -> artifact 输出
 
@@ -64,23 +54,13 @@
 
 ## Active TODO
 
-### P4 代码执行准备
-
-- [ ] T16. 定义代码执行前置边界
-  目标：
-  在真正引入执行能力前，先明确最小输入、输出、artifact、风险边界，避免直接做泛化 sandbox。
-  关联文件：
-  `docs/TODO.md`
-  `docs/plan/roadmap.md`
-  `docs/architecture/runtime-boundaries.md`
-  完成标准：
-  文档明确代码执行能力的最小闭环、暂不做事项、与 `workspace://` / `output://` 的关系。
+当前没有待实现的 Active TODO。新任务应由真实宿主需求产生，并先确认是否符合 Runtime 边界。
 
 ## Parked
 
 - [-] S1. sandbox
   原因：
-  代码执行边界尚未定义清楚，当前不直接引入完整 sandbox。
+  当前没有经过验证的宿主需求和隔离执行器，不直接引入完整 Sandbox。
 
 - [-] S2. memory
   原因：

@@ -12,11 +12,8 @@
 - `packages/harness/north/checkpointer.py`
 - `app/cli.py`
 
-问题不在于“缺更多模块”，而在于：
-
-- 哪些能力是真正推动 DeerFlow 方向的
-- 哪些只是看起来像 DeerFlow，但没有形成任务闭环
-- 哪些旧 `app/*` 兼容入口应该继续删除，而不是保留
+问题不在于“缺更多模块”，而在于哪些宿主问题属于通用 Runtime，哪些应留在产品层，
+以及新增契约是否形成了可验证的任务闭环。
 
 ## 不变的模块边界
 
@@ -142,8 +139,17 @@ class ThreadState(AgentState):
 - 提前引入过多工具
 - 提前引入多子代理协作
 
-这些能力都属于 DeerFlow 的后续阶段，不是当前阶段的主推进项。
+### 代码执行
+
+North 当前不实现代码执行。未来如有真实文件分析需求，Harness 只定义执行请求、结果、
+Runtime Event 和工具装配协议，隔离执行器及其安全策略由宿主提供。
+
+输入必须来自明确的 resource URI，中间结果写入 `workspace://`，最终用户文件写入
+`output://` 并通过 `present_files` 返回。不得把普通本机子进程包装成面向不可信代码的
+Sandbox。完整边界见 [code-execution-boundary.md](./code-execution-boundary.md)。
+
+这些能力属于长期候选，不是当前阶段的主推进项。
 
 ## 当前阶段的架构策略
 
-> 保持 DeerFlow 总体架构方向不变，把可复用核心收敛进 `packages/harness/north/`，宿主层只保留 CLI/API/default wiring，并持续删除旧兼容层。
+> 保持 `app -> north` 单向依赖；Harness 负责产品无关契约，宿主负责业务与基础设施装配。

@@ -1,6 +1,6 @@
 # North Agent TODO Archive
 
-这份文件记录已经完成的 TODO。当前可执行任务请看 [TODO](D:/workspace/github/north-agent/docs/TODO.md)。
+这份文件记录已经完成的 TODO。当前可执行任务请看 [TODO](./TODO.md)。
 
 ## Completed
 
@@ -193,3 +193,12 @@
   让 `file-analysis` skill 明确指导模型发现文件、读取相关内容、按需写报告并呈现 artifact。
   完成标准：
   Skill 覆盖上传、workspace、output、memory 资源，区分直接回答与持久报告，并声明文件内容不可信。
+
+### P4 代码执行准备
+
+- [x] T16. 定义代码执行前置边界
+  目标：
+  在真正引入执行能力前，明确最小输入、输出、Artifact、风险边界，避免直接做泛化 Sandbox。
+  完成标准：
+  文档定义受限 Python 闭环、Harness/宿主职责、安全不变量、暂不做事项，以及
+  `upload://`、`workspace://`、`output://` 和 Artifact 的关系。
