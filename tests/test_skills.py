@@ -128,6 +128,21 @@ def test_project_default_skills_support_research_report_loop():
     assert skills["writer"].tools == ("write_report", "present_files")
 
 
+def test_file_analysis_skill_documents_complete_resource_workflow():
+    skill = discover_skills(REPO_ROOT / "skills")["file-analysis"]
+    body = load_skill_body(skill)
+
+    assert "Call `list_files` before analysis" in body
+    assert all(
+        scheme in body
+        for scheme in ("`upload://`", "`workspace://`", "`output://`", "`memory://`")
+    )
+    assert "Answer inline" in body
+    assert "Call `write_report`" in body
+    assert "Call `present_files`" in body
+    assert "untrusted data" in body
+
+
 def test_project_default_prompt_exposes_skill_catalog_not_bodies():
     config = AppConfig(
         model_name="openai:gpt-4o-mini",

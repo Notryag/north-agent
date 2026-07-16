@@ -178,3 +178,18 @@
   `packages/harness/north/tools/builtin/*`
   完成标准：
   `north` 的路径相关能力由显式配置或 runtime context 注入；宿主项目负责给默认值。
+
+### P3 文件分析闭环
+
+- [x] T13. 加端到端 smoke test
+  目标：
+  用一条测试证明当前用户入口能跑通上传、文件发现、文件读取、报告写出、artifact 暴露。
+  完成标准：
+  脚本化 Agent 通过真实文件组件验证 `files=` 上传到 `ChatResponse.artifacts` 的完整链路，
+  不依赖真实模型或网络。
+
+- [x] T15. 收敛文件分析 skill 的端到端说明
+  目标：
+  让 `file-analysis` skill 明确指导模型发现文件、读取相关内容、按需写报告并呈现 artifact。
+  完成标准：
+  Skill 覆盖上传、workspace、output、memory 资源，区分直接回答与持久报告，并声明文件内容不可信。

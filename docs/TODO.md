@@ -64,34 +64,6 @@
 
 ## Active TODO
 
-### P3 文件分析闭环
-
-- [ ] T13. 加端到端 smoke test
-  目标：
-  用一条测试证明当前用户入口能跑通上传、文件发现、文件读取、报告写出、artifact 暴露。
-  关联文件：
-  `tests/test_app.py`
-  `tests/test_cli.py`
-  `packages/harness/north/client.py`
-  `app/cli.py`
-  `packages/harness/north/tools/builtin/list_files.py`
-  `packages/harness/north/tools/builtin/read_file.py`
-  `packages/harness/north/tools/builtin/write_report.py`
-  `packages/harness/north/tools/builtin/present_files.py`
-  完成标准：
-  测试覆盖 `files=` 上传；agent 侧能看到 `upload://...`；最终报告进入 outputs；`ChatResponse.artifacts` 或 CLI 输出能看到 artifact。
-
-- [ ] T15. 收敛文件分析 skill 的端到端说明
-  目标：
-  让 `file-analysis` skill 更明确地指导模型先发现文件、再读取相关文件、最后按需写报告。
-  关联文件：
-  `skills/file-analysis/SKILL.md`
-  `skills/README.md`
-  `readme.md`
-  `tests/test_skills.py`
-  完成标准：
-  skill 说明覆盖上传文件、线程文件、报告输出三类路径；默认 prompt 仍只暴露 skill catalog，不注入正文。
-
 ### P4 代码执行准备
 
 - [ ] T16. 定义代码执行前置边界
