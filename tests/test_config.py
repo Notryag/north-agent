@@ -7,11 +7,26 @@ def test_from_env_parses_skill_settings(monkeypatch, tmp_path):
     monkeypatch.setenv("APP_MODEL_NAME", "openai:gpt-4o-mini")
     monkeypatch.setenv("APP_SKILLS_DIR", str(tmp_path))
     monkeypatch.setenv("APP_SKILLS", "research, writer, research")
+    monkeypatch.setenv("APP_THREAD_BASE_DIR", str(tmp_path / "threads-data"))
 
     config = AppConfig.from_env()
 
     assert config.skills_dir == tmp_path
+    assert config.thread_base_dir == tmp_path / "threads-data"
     assert config.enabled_skills == ("research", "writer")
+
+
+def test_from_env_uses_explicit_host_path_defaults(monkeypatch, tmp_path):
+    monkeypatch.delenv("APP_SKILLS_DIR", raising=False)
+    monkeypatch.delenv("APP_THREAD_BASE_DIR", raising=False)
+
+    config = AppConfig.from_env(
+        skills_dir=tmp_path / "skills",
+        thread_base_dir=tmp_path / "runtime-data",
+    )
+
+    assert config.skills_dir == tmp_path / "skills"
+    assert config.thread_base_dir == tmp_path / "runtime-data"
 
 
 def test_validate_requires_langsmith_api_key_when_tracing_enabled(monkeypatch):

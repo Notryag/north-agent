@@ -7,7 +7,7 @@ from langchain_core.tools import tool
 
 from ...outputs.writer import write_output_file
 from ...threads import ThreadPaths
-from .._runtime import resolve_thread_id
+from .._runtime import resolve_runtime_path, resolve_thread_id
 
 
 def write_report_file(
@@ -36,12 +36,17 @@ def write_report(
     """Write a Markdown report into the current thread outputs directory."""
     resolved_thread_id = resolve_thread_id(None, runtime)
     try:
+        base_dir = resolve_runtime_path("thread_base_dir", runtime)
         output_path = write_report_file(
             content=content,
             filename=filename,
             thread_id=resolved_thread_id,
+            base_dir=base_dir,
         )
     except Exception as exc:
         return f"Report write failed: {exc}"
-    relative_output_path = ThreadPaths(thread_id=resolved_thread_id).to_project_relative(output_path)
+    relative_output_path = ThreadPaths(
+        thread_id=resolved_thread_id,
+        base_dir=base_dir,
+    ).to_project_relative(output_path)
     return f"Report written to {relative_output_path}"

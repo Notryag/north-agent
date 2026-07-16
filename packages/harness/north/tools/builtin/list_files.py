@@ -5,9 +5,8 @@ from pathlib import Path
 from langchain.tools import ToolRuntime
 from langchain_core.tools import tool
 
-from ...config import PROJECT_ROOT
 from ...threads import ThreadPaths
-from .._runtime import resolve_thread_id
+from .._runtime import resolve_runtime_path, resolve_thread_id
 
 THREAD_RESOURCE_DOMAINS = ("upload", "workspace", "output", "memory")
 
@@ -37,7 +36,9 @@ def list_thread_file_uris(
     if invalid_domains:
         raise ValueError(f"Unsupported file domain: {', '.join(invalid_domains)}")
 
-    thread_paths = ThreadPaths(thread_id=thread_id, base_dir=base_dir or PROJECT_ROOT / ".deerflow").ensure()
+    if base_dir is None:
+        raise RuntimeError("File listing requires an explicit base_dir")
+    thread_paths = ThreadPaths(thread_id=thread_id, base_dir=base_dir).ensure()
     uris: list[str] = []
     for item_domain in domains:
         root = _domain_root(thread_paths, item_domain)
@@ -68,6 +69,7 @@ def list_files(
         uris = list_thread_file_uris(
             thread_id=resolve_thread_id(None, runtime),
             domain=domain,
+            base_dir=resolve_runtime_path("thread_base_dir", runtime),
         )
     except Exception as exc:
         return f"List files failed: {exc}"

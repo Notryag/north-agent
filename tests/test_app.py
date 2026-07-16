@@ -41,7 +41,7 @@ def test_stream_emits_message_and_values_events(monkeypatch):
     assert events[-1].data == {"thread_id": "thread-1", "artifacts": ()}
 
 
-def test_stream_passes_thread_context_and_config():
+def test_stream_passes_thread_context_and_config(tmp_path):
     class StubAgent:
         def __init__(self):
             self.calls = []
@@ -57,7 +57,13 @@ def test_stream_passes_thread_context_and_config():
             )
             yield {"messages": [state["messages"][0], AIMessage(content="reply", id="ai-1")]}
 
-    client = AppClient(AppConfig(model_name="openai:gpt-4o-mini"))
+    client = AppClient(
+        AppConfig(
+            model_name="openai:gpt-4o-mini",
+            skills_dir=tmp_path / "skills",
+            thread_base_dir=tmp_path / "runtime-data",
+        )
+    )
     stub_agent = StubAgent()
     client._agent = stub_agent
 
@@ -67,6 +73,7 @@ def test_stream_passes_thread_context_and_config():
     assert stub_agent.calls[0]["context"] == {
         "thread_id": "thread-ctx",
         "skills_dir": str(client.config.skills_dir.resolve()),
+        "thread_base_dir": str(client.config.thread_base_dir.resolve()),
     }
     assert stub_agent.calls[0]["stream_mode"] == "values"
     assert events[-1].type == "end"
@@ -85,7 +92,12 @@ def test_stream_uploads_files_into_initial_state(tmp_path):
             self.state = state
             yield {"messages": [state["messages"][0], AIMessage(content="reply", id="ai-1")]}
 
-    client = AppClient(AppConfig(model_name="openai:gpt-4o-mini"))
+    client = AppClient(
+        AppConfig(
+            model_name="openai:gpt-4o-mini",
+            thread_base_dir=tmp_path / "runtime-data",
+        )
+    )
     stub_agent = StubAgent()
     client._agent = stub_agent
 
@@ -95,7 +107,7 @@ def test_stream_uploads_files_into_initial_state(tmp_path):
         {
             "name": "brief.md",
             "uri": "upload://brief.md",
-            "path": f".deerflow/threads/{thread_id}/uploads/brief.md",
+            "path": f"threads/{thread_id}/uploads/brief.md",
             "size": len("brief content"),
         }
     ]

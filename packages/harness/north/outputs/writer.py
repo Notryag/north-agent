@@ -6,7 +6,9 @@ from ..threads import ThreadPaths
 
 
 def _resolve_output_path(thread_id: str, filename: str, *, base_dir: Path | None = None) -> Path:
-    paths = ThreadPaths(thread_id=thread_id, base_dir=base_dir) if base_dir is not None else ThreadPaths(thread_id=thread_id)
+    if base_dir is None:
+        raise RuntimeError("Output storage requires an explicit base_dir")
+    paths = ThreadPaths(thread_id=thread_id, base_dir=base_dir)
     return paths.ensure().resolve_output_path(filename)
 
 

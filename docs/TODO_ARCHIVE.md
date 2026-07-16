@@ -151,3 +151,18 @@
 - [x] artifact 输出已经打通
 - [x] runtime 保护能力达到最小可用
 - [x] 下一阶段可以自然扩到文件分析、代码执行、报告生成
+
+### P0 Harness/App 架构收敛
+
+- [x] H2. 去掉 `north` 对当前仓库固定路径的隐式依赖
+  目标：
+  让 `north` 不再把仓库根、skills 目录、thread 目录当成内部常量假设。
+  关联文件：
+  `app/cli.py`
+  `packages/harness/north/config.py`
+  `packages/harness/north/client.py`
+  `packages/harness/north/threads/*`
+  `packages/harness/north/resources.py`
+  `packages/harness/north/tools/builtin/*`
+  完成标准：
+  `north` 的路径相关能力由显式配置或 runtime context 注入；宿主项目负责给默认值。

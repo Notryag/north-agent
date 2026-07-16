@@ -22,9 +22,16 @@
 
 ### `packages/harness/north/config.py`
 
-- 环境变量加载
+- 从宿主明确指定的 `.env` 路径加载环境变量
 - runtime 配置
 - 参数校验
+
+路径约定：
+
+- harness 不发现或缓存所谓“项目根目录”
+- `skills_dir` 和 `thread_base_dir` 由宿主写入 `AppConfig`
+- `AppClient` 将路径传入 runtime context，文件工具不读取当前工作目录
+- 示例 CLI 可以选择 `.deerflow` 作为兼容目录，但该名称不属于 harness 契约
 
 ### `packages/harness/north/state.py`
 

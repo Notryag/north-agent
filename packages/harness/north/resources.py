@@ -43,13 +43,15 @@ def resolve_resource_uri(
     uri: str,
     *,
     thread_id: str,
-    skills_dir: Path,
-    thread_base_dir: Path | None = None,
+    skills_dir: Path | None,
+    thread_base_dir: Path,
 ) -> Path:
     resource = parse_resource_uri(uri)
     thread_paths = ThreadPaths(thread_id=thread_id, base_dir=thread_base_dir)
 
     if resource.scheme == "skill":
+        if skills_dir is None:
+            raise RuntimeError("Skill resources require an explicit skills_dir")
         root = skills_dir.resolve()
     elif resource.scheme == "upload":
         root = thread_paths.uploads_dir.resolve()

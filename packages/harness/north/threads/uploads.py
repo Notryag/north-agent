@@ -50,7 +50,9 @@ def store_upload_file(
     if not source_path.is_file():
         raise ValueError(f"Upload path is not a file: {source}")
 
-    thread_paths = ThreadPaths(thread_id=thread_id, base_dir=base_dir) if base_dir is not None else ThreadPaths(thread_id=thread_id)
+    if base_dir is None:
+        raise RuntimeError("Upload storage requires an explicit base_dir")
+    thread_paths = ThreadPaths(thread_id=thread_id, base_dir=base_dir)
     thread_paths = thread_paths.ensure()
     target_path = _next_available_path(thread_paths.uploads_dir, source_path.name)
     shutil.copy2(source_path, target_path)

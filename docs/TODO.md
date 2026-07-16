@@ -76,17 +76,6 @@
   完成标准：
   `north` 公开入口清晰；`app` 不再承担可复用核心实现定义。
 
-- [ ] H2. 去掉 `north` 对当前仓库固定路径的隐式依赖
-  目标：
-  让 `north` 不再把仓库根、skills 目录、thread 目录当成内部常量假设。
-  关联文件：
-  `packages/harness/north/config.py`
-  `packages/harness/north/threads/*`
-  `packages/harness/north/resources.py`
-  `packages/harness/north/tools/builtin/*`
-  完成标准：
-  `north` 的路径相关能力由显式配置或 runtime context 注入；宿主项目负责给默认值。
-
 - [ ] H3. 分链迁移并删除兼容层
   目标：
   按链路迁移 `config/resources/skills/threads/outputs`、`runtime/checkpointer/tools`、`agent/client`，每完成一条链就删除对应 `app` 兼容层。

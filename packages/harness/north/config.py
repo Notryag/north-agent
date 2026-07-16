@@ -6,30 +6,11 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-PACKAGE_ROOT = Path(__file__).resolve().parent.parent
 
-
-def _discover_project_root() -> Path:
-    override = os.getenv("NORTH_PROJECT_ROOT")
-    if override:
-        return Path(override).resolve()
-
-    for candidate in (Path.cwd(), *Path.cwd().parents):
-        if (candidate / "skills").exists() or (candidate / ".git").exists():
-            return candidate.resolve()
-
-    return PACKAGE_ROOT.parent.parent.resolve()
-
-
-PROJECT_ROOT = _discover_project_root()
-DEFAULT_ENV_PATH = PROJECT_ROOT / ".env"
-
-
-def load_environment(env_path: Path | None = None) -> None:
-    """Load variables from the project .env file when it exists."""
-    candidate = env_path or DEFAULT_ENV_PATH
-    if candidate.exists():
-        load_dotenv(candidate, override=False)
+def load_environment(env_path: Path) -> None:
+    """Load variables from an explicitly selected host environment file."""
+    if env_path.exists():
+        load_dotenv(env_path, override=False)
 
 
 def _get_bool(name: str, default: bool) -> bool:
@@ -64,7 +45,8 @@ class AppConfig:
     thinking_enabled: bool = False
     system_prompt: str = "You are a helpful assistant."
     recursion_limit: int = 50
-    skills_dir: Path = PROJECT_ROOT / "skills"
+    skills_dir: Path | None = None
+    thread_base_dir: Path | None = None
     enabled_skills: tuple[str, ...] = ()
     summarization_enabled: bool = False
     summarization_model_name: str | None = None
@@ -73,14 +55,28 @@ class AppConfig:
     summarization_keep_messages: int = 12
 
     @classmethod
-    def from_env(cls) -> "AppConfig":
-        load_environment()
+    def from_env(
+        cls,
+        *,
+        env_path: Path | None = None,
+        skills_dir: Path | None = None,
+        thread_base_dir: Path | None = None,
+    ) -> "AppConfig":
+        if env_path is not None:
+            load_environment(env_path)
+        configured_skills_dir = os.getenv("APP_SKILLS_DIR")
+        configured_thread_base_dir = os.getenv("APP_THREAD_BASE_DIR")
         return cls(
             model_name=os.getenv("APP_MODEL_NAME", "openai:gpt-4o-mini"),
             thinking_enabled=_get_bool("APP_THINKING_ENABLED", False),
             system_prompt=os.getenv("APP_SYSTEM_PROMPT", "You are a helpful assistant."),
             recursion_limit=_get_int("APP_RECURSION_LIMIT", 50),
-            skills_dir=Path(os.getenv("APP_SKILLS_DIR", PROJECT_ROOT / "skills")),
+            skills_dir=Path(configured_skills_dir) if configured_skills_dir else skills_dir,
+            thread_base_dir=(
+                Path(configured_thread_base_dir)
+                if configured_thread_base_dir
+                else thread_base_dir
+            ),
             enabled_skills=_get_csv("APP_SKILLS"),
             summarization_enabled=_get_bool("APP_SUMMARIZATION_ENABLED", False),
             summarization_model_name=os.getenv("APP_SUMMARIZATION_MODEL_NAME"),
@@ -96,7 +92,9 @@ class AppConfig:
             raise RuntimeError("OPENAI_API_KEY is not set. Add it to the project .env file before running the app.")
         if _get_bool("LANGSMITH_TRACING", False) and not os.getenv("LANGSMITH_API_KEY"):
             raise RuntimeError("LANGSMITH_API_KEY is not set. Add it to the project .env file or disable LANGSMITH_TRACING.")
-        if self.enabled_skills and not self.skills_dir.exists():
+        if self.enabled_skills and self.skills_dir is None:
+            raise RuntimeError("APP_SKILLS requires an explicit skills directory")
+        if self.enabled_skills and self.skills_dir is not None and not self.skills_dir.exists():
             raise RuntimeError(
                 f"APP_SKILLS requested {', '.join(self.enabled_skills)} but skills directory does not exist: {self.skills_dir}"
             )

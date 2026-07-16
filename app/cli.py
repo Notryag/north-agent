@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 
 from north.client import AppClient, StreamEvent
 from north.config import AppConfig
+
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
 def format_stream_event(event: StreamEvent) -> str:
@@ -69,7 +73,11 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> int:
     args = build_parser().parse_args()
-    config = AppConfig.from_env()
+    config = AppConfig.from_env(
+        env_path=PROJECT_ROOT / ".env",
+        skills_dir=PROJECT_ROOT / "skills",
+        thread_base_dir=PROJECT_ROOT / ".deerflow",
+    )
     config.validate()
     client = AppClient(config)
 

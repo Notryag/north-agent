@@ -52,7 +52,7 @@ def test_cli_prints_chat_artifacts(monkeypatch, capsys):
     monkeypatch.setattr("app.cli.AppClient", FakeClient)
     monkeypatch.setattr(
         "app.cli.AppConfig.from_env",
-        classmethod(lambda cls: AppConfig(model_name="openai:gpt-4o-mini")),
+        classmethod(lambda cls, **kwargs: AppConfig(model_name="openai:gpt-4o-mini")),
     )
     monkeypatch.setattr("app.cli.AppConfig.validate", lambda self: None)
     monkeypatch.setattr(
@@ -77,7 +77,7 @@ def test_cli_stream_prints_final_artifacts(monkeypatch, capsys):
     monkeypatch.setattr("app.cli.AppClient", FakeClient)
     monkeypatch.setattr(
         "app.cli.AppConfig.from_env",
-        classmethod(lambda cls: AppConfig(model_name="openai:gpt-4o-mini")),
+        classmethod(lambda cls, **kwargs: AppConfig(model_name="openai:gpt-4o-mini")),
     )
     monkeypatch.setattr("app.cli.AppConfig.validate", lambda self: None)
     monkeypatch.setattr("sys.argv", ["north-agent", "--stream", "hello"])
@@ -109,7 +109,7 @@ def test_cli_stream_show_events_prints_tool_and_values_events(monkeypatch, capsy
     monkeypatch.setattr("app.cli.AppClient", FakeClient)
     monkeypatch.setattr(
         "app.cli.AppConfig.from_env",
-        classmethod(lambda cls: AppConfig(model_name="openai:gpt-4o-mini")),
+        classmethod(lambda cls, **kwargs: AppConfig(model_name="openai:gpt-4o-mini")),
     )
     monkeypatch.setattr("app.cli.AppConfig.validate", lambda self: None)
     monkeypatch.setattr("sys.argv", ["north-agent", "--stream", "--show-events", "hello"])

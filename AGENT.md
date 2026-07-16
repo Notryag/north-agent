@@ -21,17 +21,17 @@
 
 ## 当前代码现实
 
-- 当前真正存在的 agent 装配文件是 `app/agent.py`
-- 当前已经有 `app/tools/builtin/`、`app/outputs/`、`app/threads/`、`app/skills/`
-- 当前已经有 `app/agents/middlewares/`
+- 当前真正存在的 agent 装配文件是 `packages/harness/north/agent.py`
+- 可复用的 tools、outputs、threads、skills 和 middleware 均位于 `packages/harness/north/`
+- `app/` 当前只保留示例 CLI 宿主入口
 - 已完成任务已归档到 `docs/TODO_ARCHIVE.md`
 - 不要假设 repo 里已经有完整 DeerFlow 目录结构
 
 ## 当前 prompt 现状
 
-- 当前 runtime system prompt 来自 `app/config.py`
+- 当前 runtime system prompt 来自宿主提供的 `north.config.AppConfig`
 - 当前默认值是：`You are a helpful assistant.`
-- `app/agent.py` 会把 `config.system_prompt` 传给 `create_agent(...)`
+- `north.agent.build_agent()` 会把 `config.system_prompt` 传给 `create_agent(...)`
 - 当前没有独立 prompt 文件；任务工作流主要通过本地 `skills/*/SKILL.md` 按需加载
 
 ## 当前最重要的 active work

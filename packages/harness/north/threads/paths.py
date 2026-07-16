@@ -3,8 +3,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from ..config import PROJECT_ROOT
-
 
 def _normalize_relative_path(path: str | Path) -> Path:
     candidate = Path(path)
@@ -16,7 +14,7 @@ def _normalize_relative_path(path: str | Path) -> Path:
 @dataclass(frozen=True, slots=True)
 class ThreadPaths:
     thread_id: str
-    base_dir: Path = PROJECT_ROOT / ".deerflow"
+    base_dir: Path
 
     @property
     def threads_dir(self) -> Path:
@@ -59,11 +57,10 @@ class ThreadPaths:
 
     def to_project_relative(self, path: Path) -> str:
         resolved_path = path.resolve()
-        for root in (PROJECT_ROOT, self.base_dir):
-            try:
-                return resolved_path.relative_to(root.resolve()).as_posix()
-            except ValueError:
-                continue
+        try:
+            return resolved_path.relative_to(self.base_dir.resolve()).as_posix()
+        except ValueError:
+            pass
         return resolved_path.as_posix()
 
     def ensure(self) -> "ThreadPaths":

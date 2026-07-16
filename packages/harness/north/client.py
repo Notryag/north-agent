@@ -129,10 +129,18 @@ class AppClient:
         if thread_id is None:
             thread_id = str(uuid.uuid4())
 
-        uploaded_files = [
-            uploaded_file.as_state_record()
-            for uploaded_file in store_upload_files(files or (), thread_id=thread_id)
-        ]
+        uploaded_files: list[dict] = []
+        if files:
+            if self.config.thread_base_dir is None:
+                raise RuntimeError("File uploads require an explicit thread_base_dir")
+            uploaded_files = [
+                uploaded_file.as_state_record()
+                for uploaded_file in store_upload_files(
+                    files,
+                    thread_id=thread_id,
+                    base_dir=self.config.thread_base_dir,
+                )
+            ]
         upload_notice = self._format_upload_notice(uploaded_files)
         message_content = f"{message}\n\n{upload_notice}" if upload_notice else message
 
@@ -143,11 +151,15 @@ class AppClient:
         seen_ai_ids: set[str] = set()
         seen_tool_ids: set[tuple[str | None, str | None, str]] = set()
         latest_artifacts: tuple[str, ...] = ()
-        context = {
-            "thread_id": thread_id,
-            "skills_dir": str(self.config.skills_dir.resolve()),
-        }
-        agent_factory = lambda: self._get_agent(skills=skills)
+        context = {"thread_id": thread_id}
+        if self.config.skills_dir is not None:
+            context["skills_dir"] = str(self.config.skills_dir.resolve())
+        if self.config.thread_base_dir is not None:
+            context["thread_base_dir"] = str(self.config.thread_base_dir.resolve())
+
+        def agent_factory():
+            return self._get_agent(skills=skills)
+
         record = self.runtime.start_run(
             thread_id=thread_id,
             agent_factory=agent_factory,

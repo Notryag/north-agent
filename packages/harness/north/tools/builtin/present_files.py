@@ -8,7 +8,7 @@ from langchain_core.tools import tool
 from langgraph.types import Command
 
 from ...threads import ThreadPaths
-from .._runtime import resolve_thread_id
+from .._runtime import resolve_runtime_path, resolve_thread_id
 
 
 def _merge_artifacts(existing: list[str], new: list[str]) -> list[str]:
@@ -38,7 +38,9 @@ def resolve_artifact_paths(
     thread_id: str,
     base_dir: Path | None = None,
 ) -> list[str]:
-    thread_paths = ThreadPaths(thread_id=thread_id, base_dir=base_dir) if base_dir is not None else ThreadPaths(thread_id=thread_id)
+    if base_dir is None:
+        raise RuntimeError("Artifact presentation requires an explicit base_dir")
+    thread_paths = ThreadPaths(thread_id=thread_id, base_dir=base_dir)
     thread_paths = thread_paths.ensure()
 
     artifacts: list[str] = []
@@ -73,7 +75,11 @@ def present_files(
 
     try:
         resolved_thread_id = resolve_thread_id(None, runtime)
-        artifacts = resolve_artifact_paths(paths, thread_id=resolved_thread_id)
+        artifacts = resolve_artifact_paths(
+            paths,
+            thread_id=resolved_thread_id,
+            base_dir=resolve_runtime_path("thread_base_dir", runtime),
+        )
     except Exception as exc:
         return f"Present files failed: {exc}"
 

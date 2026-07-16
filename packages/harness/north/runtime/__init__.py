@@ -31,6 +31,10 @@ def get_skills(
 ) -> list[SkillSpec]:
     """Resolve available runtime skills for prompt exposure."""
     requested_names = tuple(skill_names) if skill_names is not None else config.enabled_skills
+    if config.skills_dir is None:
+        if requested_names:
+            raise RuntimeError("Skills were requested without configuring skills_dir")
+        return []
     if not requested_names:
         return load_all_skills(config.skills_dir)
     return load_skills(config.skills_dir, requested_names)
