@@ -30,6 +30,27 @@ def test_create_chat_model_preserves_explicit_provider(monkeypatch):
     assert captured == {"model": "gpt-4o-mini", "model_provider": "openai"}
 
 
+def test_create_chat_model_forwards_host_headers(monkeypatch):
+    captured = {}
+
+    def fake_init_chat_model(**kwargs):
+        captured.update(kwargs)
+        return object()
+
+    monkeypatch.setattr("north.agent.init_chat_model", fake_init_chat_model)
+
+    create_chat_model(
+        "openai:gpt-4o-mini",
+        default_headers={"Northgate-Metadata": '{"run_id":"run-1"}'},
+    )
+
+    assert captured == {
+        "model": "gpt-4o-mini",
+        "model_provider": "openai",
+        "default_headers": {"Northgate-Metadata": '{"run_id":"run-1"}'},
+    }
+
+
 def test_build_agent_injects_skill_catalog_not_skill_body(monkeypatch, tmp_path):
     skill_dir = tmp_path / "skills" / "research"
     skill_dir.mkdir(parents=True)

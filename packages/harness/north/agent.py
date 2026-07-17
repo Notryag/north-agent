@@ -23,7 +23,11 @@ def _supports_tool_binding(model) -> bool:
     return bind_tools is not None and bind_tools is not BaseChatModel.bind_tools
 
 
-def create_chat_model(name: str, thinking_enabled: bool = False):
+def create_chat_model(
+    name: str,
+    thinking_enabled: bool = False,
+    default_headers: dict[str, str] | None = None,
+):
     """Create a chat model from a provider-prefixed or plain model name."""
     provider, separator, model_name = name.partition(":")
     if separator:
@@ -33,11 +37,14 @@ def create_chat_model(name: str, thinking_enabled: bool = False):
         # behind OPENAI_BASE_URL (DashScope, OpenRouter-compatible gateways, etc.)
         # work without forcing a prefix in APP_MODEL_NAME.
         kwargs = {"model": name, "model_provider": "openai"}
+    if default_headers:
+        kwargs["default_headers"] = dict(default_headers)
 
     # The flag stays in the public config surface even though the minimal app
     # does not apply provider-specific reasoning parameters yet.
     _ = thinking_enabled
     return init_chat_model(**kwargs)
+
 
 def build_agent(
     config: AppConfig,
@@ -48,10 +55,13 @@ def build_agent(
     skills: Sequence[str] | None = None,
     compaction_hooks: list[CompactionHook] | None = None,
 ):
-    model = create_chat_model(
-        name=config.model_name,
-        thinking_enabled=config.thinking_enabled,
-    )
+    model_kwargs = {
+        "name": config.model_name,
+        "thinking_enabled": config.thinking_enabled,
+    }
+    if config.model_headers:
+        model_kwargs["default_headers"] = config.model_headers
+    model = create_chat_model(**model_kwargs)
     resolved_skills = resolve_skills(config, skill_names=skills)
     resolved_tools = tools if tools is not None else resolve_tools(config, skills=resolved_skills)
     if not _supports_tool_binding(model):
@@ -62,7 +72,10 @@ def build_agent(
     )
     if config.summarization_enabled:
         summary_model = (
-            create_chat_model(config.summarization_model_name)
+            create_chat_model(
+                config.summarization_model_name,
+                **({"default_headers": config.model_headers} if config.model_headers else {}),
+            )
             if config.summarization_model_name
             else model
         )

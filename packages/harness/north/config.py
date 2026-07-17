@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -42,6 +42,7 @@ def _get_csv(name: str) -> tuple[str, ...]:
 @dataclass(slots=True)
 class AppConfig:
     model_name: str
+    model_headers: dict[str, str] = field(default_factory=dict)
     thinking_enabled: bool = False
     system_prompt: str = "You are a helpful assistant."
     recursion_limit: int = 50
