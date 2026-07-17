@@ -27,6 +27,7 @@ def create_chat_model(
     name: str,
     thinking_enabled: bool = False,
     default_headers: dict[str, str] | None = None,
+    model_options: dict[str, object] | None = None,
 ):
     """Create a chat model from a provider-prefixed or plain model name."""
     provider, separator, model_name = name.partition(":")
@@ -39,6 +40,11 @@ def create_chat_model(
         kwargs = {"model": name, "model_provider": "openai"}
     if default_headers:
         kwargs["default_headers"] = dict(default_headers)
+    if model_options:
+        reserved = {"model", "model_provider", "default_headers"} & model_options.keys()
+        if reserved:
+            raise ValueError(f"Model options cannot override: {', '.join(sorted(reserved))}")
+        kwargs.update(model_options)
 
     # The flag stays in the public config surface even though the minimal app
     # does not apply provider-specific reasoning parameters yet.
@@ -61,6 +67,8 @@ def build_agent(
     }
     if config.model_headers:
         model_kwargs["default_headers"] = config.model_headers
+    if config.model_options:
+        model_kwargs["model_options"] = config.model_options
     model = create_chat_model(**model_kwargs)
     resolved_skills = resolve_skills(config, skill_names=skills)
     resolved_tools = tools if tools is not None else resolve_tools(config, skills=resolved_skills)
@@ -75,6 +83,7 @@ def build_agent(
             create_chat_model(
                 config.summarization_model_name,
                 **({"default_headers": config.model_headers} if config.model_headers else {}),
+                **({"model_options": config.model_options} if config.model_options else {}),
             )
             if config.summarization_model_name
             else model

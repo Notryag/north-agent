@@ -1,3 +1,5 @@
+import pytest
+
 from north.agent import build_agent, create_chat_model
 from north.config import AppConfig
 
@@ -49,6 +51,36 @@ def test_create_chat_model_forwards_host_headers(monkeypatch):
         "model_provider": "openai",
         "default_headers": {"Northgate-Metadata": '{"run_id":"run-1"}'},
     }
+
+
+def test_create_chat_model_forwards_host_connection_options(monkeypatch):
+    captured = {}
+
+    def fake_init_chat_model(**kwargs):
+        captured.update(kwargs)
+        return object()
+
+    monkeypatch.setattr("north.agent.init_chat_model", fake_init_chat_model)
+
+    create_chat_model(
+        "openai:gpt-4o-mini",
+        model_options={"base_url": "http://northgate:8080/v1", "api_key": "application-key"},
+    )
+
+    assert captured == {
+        "model": "gpt-4o-mini",
+        "model_provider": "openai",
+        "base_url": "http://northgate:8080/v1",
+        "api_key": "application-key",
+    }
+
+
+def test_create_chat_model_rejects_reserved_connection_options() -> None:
+    with pytest.raises(ValueError, match="model_provider"):
+        create_chat_model(
+            "openai:gpt-4o-mini",
+            model_options={"model_provider": "anthropic"},
+        )
 
 
 def test_build_agent_injects_skill_catalog_not_skill_body(monkeypatch, tmp_path):

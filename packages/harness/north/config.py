@@ -43,6 +43,7 @@ def _get_csv(name: str) -> tuple[str, ...]:
 class AppConfig:
     model_name: str
     model_headers: dict[str, str] = field(default_factory=dict)
+    model_options: dict[str, object] = field(default_factory=dict)
     thinking_enabled: bool = False
     system_prompt: str = "You are a helpful assistant."
     recursion_limit: int = 50
