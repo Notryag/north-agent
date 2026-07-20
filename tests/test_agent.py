@@ -152,3 +152,29 @@ def test_build_agent_combines_token_and_message_summarization_triggers(monkeypat
     assert captured["trigger"] == [("tokens", 1200), ("messages", 40)]
     assert captured["keep"] == ("messages", 12)
     assert captured["summary_model_config"] == {"tags": ["middleware:summarization"]}
+
+
+def test_build_agent_appends_host_middlewares_after_runtime_defaults(monkeypatch):
+    captured = {}
+    runtime_middleware = object()
+    host_middleware = object()
+
+    class StubModel:
+        pass
+
+    monkeypatch.setattr("north.agent.create_chat_model", lambda *args, **kwargs: StubModel())
+    monkeypatch.setattr("north.agent._supports_tool_binding", lambda model: True)
+    monkeypatch.setattr(
+        "north.agent.resolve_middlewares", lambda config: [runtime_middleware]
+    )
+    monkeypatch.setattr(
+        "north.agent.create_agent", lambda **kwargs: captured.update(kwargs) or object()
+    )
+
+    build_agent(
+        AppConfig(model_name="openai:gpt-test"),
+        tools=[],
+        additional_middlewares=[host_middleware],
+    )
+
+    assert captured["middleware"] == [runtime_middleware, host_middleware]

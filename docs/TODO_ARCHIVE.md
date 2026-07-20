@@ -217,3 +217,13 @@
   完成标准：
   宿主可同时配置 token 阈值和消息数阈值，North 使用 OR 语义触发 LangChain 安全压缩，
   且未配置 token 阈值的既有宿主行为不变。
+
+- [x] T18. 支持宿主追加 Agent middleware
+  目标：
+  允许宿主添加领域级模型请求策略，同时保留 North 默认的澄清和运行时 middleware。
+  关联文件：
+  `packages/harness/north/agent.py`
+  `tests/test_agent.py`
+  完成标准：
+  `additional_middlewares` 追加在 runtime 默认 middleware 之后，不改变显式
+  `middlewares` 覆盖入口，也不要求宿主复制 North 的默认装配。

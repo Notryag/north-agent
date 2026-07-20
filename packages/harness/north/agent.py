@@ -57,6 +57,7 @@ def build_agent(
     *,
     tools: list | None = None,
     middlewares=None,
+    additional_middlewares=None,
     checkpointer=None,
     skills: Sequence[str] | None = None,
     compaction_hooks: list[CompactionHook] | None = None,
@@ -78,6 +79,8 @@ def build_agent(
     resolved_middlewares = list(
         middlewares if middlewares is not None else resolve_middlewares(config)
     )
+    if additional_middlewares is not None:
+        resolved_middlewares.extend(additional_middlewares)
     if config.summarization_enabled:
         summary_model = (
             create_chat_model(
