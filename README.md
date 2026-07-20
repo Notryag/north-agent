@@ -135,6 +135,7 @@ docs/                     架构、演进计划和设计记录
 重要入口：
 
 - `north.invoke_agent_once`：产品服务的一次性 Agent 调用
+- `north.stream_agent_once`：标准化 `values`、`messages`、`custom` graph 流
 - `north.AppClient`：聊天与流式客户端
 - `north.RuntimeJournal`：模型和工具运行事件
 - `north.make_checkpointer`：Memory、SQLite、PostgreSQL 持久化
