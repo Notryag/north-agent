@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import threading
+import asyncio
 from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any
@@ -29,7 +29,7 @@ class RunRecord:
     multitask_strategy: str = "reject"
     metadata: dict[str, Any] = field(default_factory=dict)
     kwargs: dict[str, Any] = field(default_factory=dict)
-    task: threading.Thread | None = None
-    abort_event: threading.Event = field(default_factory=threading.Event)
+    task: asyncio.Task[Any] | None = None
+    abort_event: asyncio.Event = field(default_factory=asyncio.Event)
     abort_action: str = "interrupt"
     error: str | None = None

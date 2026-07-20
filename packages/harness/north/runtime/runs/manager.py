@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import threading
 import uuid
 
@@ -76,7 +77,7 @@ class RunManager:
                     return record
             return None
 
-    def set_task(self, run_id: str, task: threading.Thread) -> None:
+    def set_task(self, run_id: str, task: asyncio.Task) -> None:
         with self._lock:
             record = self._require(run_id)
             record.task = task
@@ -94,6 +95,8 @@ class RunManager:
                 return False
             record.abort_action = action
             record.abort_event.set()
+            if record.task is not None and not record.task.done():
+                record.task.cancel()
             if record.status in ACTIVE_STATUSES:
                 record.status = RunStatus.interrupted
             return True

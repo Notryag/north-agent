@@ -7,11 +7,9 @@ from langchain_core.messages import AIMessage
 from north import (
     RuntimeEvent,
     RuntimeJournal,
-    RuntimeStreamEvent,
     RuntimeUsageAccumulator,
     invoke_agent_once,
     normalize_token_usage,
-    stream_agent_once,
 )
 
 
@@ -161,72 +159,3 @@ async def _assert_invoke_agent_once_merges_callbacks() -> None:
     assert isinstance(captured["config"]["callbacks"][1], RuntimeJournal)
     assert captured["config"]["configurable"] == {"thread_id": "thread-1"}
     assert captured["context"] == {"run_id": "run-1"}
-
-
-def test_stream_agent_once_normalizes_messages_and_returns_latest_values() -> None:
-    asyncio.run(_assert_stream_agent_once_normalizes_chunks())
-
-
-async def _assert_stream_agent_once_normalizes_chunks() -> None:
-    captured = {}
-    events: list[RuntimeStreamEvent] = []
-
-    class StubAgent:
-        async def astream(
-            self,
-            graph_input,
-            *,
-            config=None,
-            context=None,
-            stream_mode=None,
-        ):
-            captured.update(
-                graph_input=graph_input,
-                config=config,
-                context=context,
-                stream_mode=stream_mode,
-            )
-            yield ("messages", (AIMessage(content="好"), {"langgraph_node": "model"}))
-            yield ("values", {"messages": [AIMessage(content="好了")]})
-
-    async def stream_sink(event: RuntimeStreamEvent) -> None:
-        events.append(event)
-
-    result = await stream_agent_once(
-        agent_factory=StubAgent,
-        graph_input={"messages": []},
-        config={"configurable": {"thread_id": "thread-1"}},
-        context={"run_id": "run-1"},
-        stream_sink=stream_sink,
-    )
-
-    assert captured["stream_mode"] == ["values", "messages"]
-    assert captured["context"] == {"run_id": "run-1"}
-    assert [event.mode for event in events] == ["messages", "values"]
-    assert events[0].data[0]["content"] == "好"
-    assert result["messages"][0]["content"] == "好了"
-
-
-def test_stream_agent_once_falls_back_to_ainvoke() -> None:
-    asyncio.run(_assert_stream_agent_once_fallback())
-
-
-async def _assert_stream_agent_once_fallback() -> None:
-    events: list[RuntimeStreamEvent] = []
-
-    class StubAgent:
-        async def ainvoke(self, graph_input, *, config=None, context=None):
-            del graph_input, config, context
-            return {"answer": "done"}
-
-    async def stream_sink(event: RuntimeStreamEvent) -> None:
-        events.append(event)
-
-    result = await stream_agent_once(
-        agent_factory=StubAgent,
-        graph_input={"messages": []},
-        stream_sink=stream_sink,
-    )
-
-    assert result == {"answer": "done"}
-    assert events == [RuntimeStreamEvent(mode="values", data={"answer": "done"})]

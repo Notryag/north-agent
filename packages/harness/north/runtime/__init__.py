@@ -11,12 +11,7 @@ from ..skills import SkillSpec, compose_system_prompt, load_all_skills, load_ski
 from ..state import ThreadState
 from ..tools import get_builtin_tools
 from .runs import DisconnectMode, RunConflictError, RunManager, RunRecord, RunStatus
-from .invoke import (
-    RuntimeStreamEvent,
-    RuntimeStreamSink,
-    invoke_agent_once,
-    stream_agent_once,
-)
+from .invoke import RuntimeStreamEvent, invoke_agent_once
 from .events import (
     RuntimeEvent,
     RuntimeEventSink,
@@ -26,7 +21,16 @@ from .events import (
     normalize_token_usage,
 )
 from .service import RuntimeService
-from .stream_bridge import MemoryStreamBridge
+from .stream_bridge import (
+    END_SENTINEL,
+    HEARTBEAT_SENTINEL,
+    MemoryStreamBridge,
+    REPLAY_GAP_EVENT,
+    RedisStreamBridge,
+    StreamBridge,
+    StreamEvent,
+)
+from .worker import RunExecutor, RunLifecycleHooks
 
 
 def get_skills(
@@ -87,17 +91,24 @@ def get_state_schema():
 __all__ = [
     "DisconnectMode",
     "MemoryStreamBridge",
+    "REPLAY_GAP_EVENT",
+    "RedisStreamBridge",
     "RunConflictError",
     "RunManager",
     "RunRecord",
     "RunStatus",
+    "RunExecutor",
+    "RunLifecycleHooks",
     "RuntimeService",
     "RuntimeEvent",
     "RuntimeEventSink",
     "RuntimeJournal",
     "RuntimeUsageAccumulator",
     "RuntimeStreamEvent",
-    "RuntimeStreamSink",
+    "StreamBridge",
+    "StreamEvent",
+    "END_SENTINEL",
+    "HEARTBEAT_SENTINEL",
     "TokenUsage",
     "get_checkpointer",
     "get_middlewares",
@@ -106,6 +117,5 @@ __all__ = [
     "get_system_prompt",
     "get_tools",
     "invoke_agent_once",
-    "stream_agent_once",
     "normalize_token_usage",
 ]

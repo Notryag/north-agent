@@ -46,7 +46,7 @@ def test_stream_passes_thread_context_and_config(tmp_path):
         def __init__(self):
             self.calls = []
 
-        def stream(self, state, config=None, context=None, stream_mode=None):
+        async def astream(self, state, config=None, context=None, stream_mode=None):
             self.calls.append(
                 {
                     "state": state,
@@ -75,7 +75,7 @@ def test_stream_passes_thread_context_and_config(tmp_path):
         "skills_dir": str(client.config.skills_dir.resolve()),
         "thread_base_dir": str(client.config.thread_base_dir.resolve()),
     }
-    assert stub_agent.calls[0]["stream_mode"] == "values"
+    assert stub_agent.calls[0]["stream_mode"] == ["values"]
     assert events[-1].type == "end"
 
 
@@ -88,7 +88,7 @@ def test_stream_uploads_files_into_initial_state(tmp_path):
         def __init__(self):
             self.state = None
 
-        def stream(self, state, config=None, context=None, stream_mode=None):
+        async def astream(self, state, config=None, context=None, stream_mode=None):
             self.state = state
             yield {"messages": [state["messages"][0], AIMessage(content="reply", id="ai-1")]}
 
@@ -117,7 +117,7 @@ def test_stream_uploads_files_into_initial_state(tmp_path):
 
 def test_chat_returns_last_ai_event_content():
     class StubAgent:
-        def stream(self, state, config=None, context=None, stream_mode=None):
+        async def astream(self, state, config=None, context=None, stream_mode=None):
             yield {"messages": [state["messages"][0], AIMessage(content="first", id="ai-1")]}
             yield {"messages": [state["messages"][0], AIMessage(content="last", id="ai-2")]}
 
@@ -132,7 +132,7 @@ def test_chat_returns_last_ai_event_content():
 
 def test_stream_extracts_text_from_list_content():
     class StubAgent:
-        def stream(self, state, config=None, context=None, stream_mode=None):
+        async def astream(self, state, config=None, context=None, stream_mode=None):
             yield {
                 "messages": [
                     state["messages"][0],
@@ -151,7 +151,7 @@ def test_stream_extracts_text_from_list_content():
 
 def test_stream_emits_tool_events_with_artifacts():
     class StubAgent:
-        def stream(self, state, config=None, context=None, stream_mode=None):
+        async def astream(self, state, config=None, context=None, stream_mode=None):
             yield {
                 "messages": [
                     state["messages"][0],
@@ -181,7 +181,7 @@ def test_stream_emits_tool_events_with_artifacts():
 
 def test_chat_carries_artifacts_from_stream():
     class StubAgent:
-        def stream(self, state, config=None, context=None, stream_mode=None):
+        async def astream(self, state, config=None, context=None, stream_mode=None):
             yield {
                 "messages": [
                     state["messages"][0],
@@ -209,7 +209,7 @@ def test_chat_carries_artifacts_from_stream():
 
 def test_stream_emits_error_event_before_reraising():
     class StubAgent:
-        def stream(self, state, config=None, context=None, stream_mode=None):
+        async def astream(self, state, config=None, context=None, stream_mode=None):
             raise RuntimeError("boom")
             yield state
 
@@ -240,7 +240,7 @@ def test_client_builds_distinct_agents_for_skill_sets(monkeypatch):
         def __init__(self, label):
             self.label = label
 
-        def stream(self, state, config=None, context=None, stream_mode=None):
+        async def astream(self, state, config=None, context=None, stream_mode=None):
             yield {"messages": [state["messages"][0], AIMessage(content=self.label, id=f"ai-{self.label}")]}
 
     def fake_build_agent(config, *, checkpointer=None, skills=None):

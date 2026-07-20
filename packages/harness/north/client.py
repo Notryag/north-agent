@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import asyncio
+import queue
+import threading
 import uuid
-from collections.abc import Generator
+from collections.abc import Generator, Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -160,17 +163,14 @@ class AppClient:
         def agent_factory():
             return self._get_agent(skills=skills)
 
-        record = self.runtime.start_run(
-            thread_id=thread_id,
-            agent_factory=agent_factory,
-            graph_input=state,
-            config=config,
-            context=context,
-            stream_mode="values",
-        )
-
         try:
-            for runtime_event in self.runtime.stream_run(record.run_id):
+            for runtime_event in self._sync_runtime_stream(
+                thread_id=thread_id,
+                agent_factory=agent_factory,
+                graph_input=state,
+                config=config,
+                context=context,
+            ):
                 if runtime_event.event == "metadata":
                     continue
 
@@ -186,7 +186,7 @@ class AppClient:
                     )
                     raise RuntimeError(error_data.get("message") or "")
 
-                if runtime_event.event == "end":
+                if runtime_event.event == "__end__":
                     break
 
                 if runtime_event.event != "values":
@@ -205,14 +205,16 @@ class AppClient:
                     latest_artifacts = artifacts
 
                 for msg in messages:
-                    if isinstance(msg, AIMessage):
-                        msg_id = getattr(msg, "id", None)
+                    message_type = msg.get("type") if isinstance(msg, dict) else None
+                    if isinstance(msg, AIMessage) or message_type in {"ai", "AIMessage"}:
+                        msg_id = msg.get("id") if isinstance(msg, dict) else getattr(msg, "id", None)
                         if msg_id and msg_id in seen_ai_ids:
                             continue
                         if msg_id:
                             seen_ai_ids.add(msg_id)
 
-                        text = self._extract_text(msg.content)
+                        content = msg.get("content") if isinstance(msg, dict) else msg.content
+                        text = self._extract_text(content)
                         if not text:
                             continue
                         yield StreamEvent(
@@ -226,11 +228,16 @@ class AppClient:
                         )
                         continue
 
-                    if not isinstance(msg, ToolMessage):
+                    if not isinstance(msg, ToolMessage) and message_type != "tool":
                         continue
 
-                    text = self._extract_text(msg.content)
-                    tool_key = (msg.tool_call_id, getattr(msg, "name", None), text)
+                    content = msg.get("content") if isinstance(msg, dict) else msg.content
+                    tool_call_id = (
+                        msg.get("tool_call_id") if isinstance(msg, dict) else msg.tool_call_id
+                    )
+                    tool_name = msg.get("name") if isinstance(msg, dict) else getattr(msg, "name", None)
+                    text = self._extract_text(content)
+                    tool_key = (tool_call_id, tool_name, text)
                     if tool_key in seen_tool_ids:
                         continue
                     seen_tool_ids.add(tool_key)
@@ -238,10 +245,14 @@ class AppClient:
                     yield StreamEvent(
                         type="tool",
                         data={
-                            "name": getattr(msg, "name", None),
+                            "name": tool_name,
                             "content": text,
-                            "tool_call_id": msg.tool_call_id,
-                            "status": getattr(msg, "status", "success"),
+                            "tool_call_id": tool_call_id,
+                            "status": (
+                                msg.get("status", "success")
+                                if isinstance(msg, dict)
+                                else getattr(msg, "status", "success")
+                            ),
                             "thread_id": thread_id,
                             "artifacts": latest_artifacts,
                         },
@@ -261,6 +272,43 @@ class AppClient:
             raise
 
         yield StreamEvent(type="end", data={"thread_id": thread_id, "artifacts": latest_artifacts})
+
+    def _sync_runtime_stream(self, **start_kwargs: Any) -> Iterator[Any]:
+        """Adapt the async runtime to the synchronous client without a second worker path."""
+
+        events: queue.Queue[Any] = queue.Queue()
+        finished = object()
+
+        async def consume() -> None:
+            record = await self.runtime.start_run(
+                **start_kwargs,
+                stream_modes=("values",),
+                publish_modes=("values",),
+            )
+            async for event in self.runtime.stream_run(record.run_id):
+                events.put(event)
+            if record.task is not None:
+                try:
+                    await record.task
+                except Exception:
+                    pass
+
+        def run() -> None:
+            try:
+                asyncio.run(consume())
+            except BaseException as exc:
+                events.put(exc)
+            finally:
+                events.put(finished)
+
+        threading.Thread(target=run, daemon=True).start()
+        while True:
+            item = events.get()
+            if item is finished:
+                return
+            if isinstance(item, BaseException):
+                raise item
+            yield item
 
     def chat(
         self,

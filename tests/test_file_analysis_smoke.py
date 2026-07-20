@@ -16,7 +16,7 @@ def test_file_analysis_runs_from_upload_to_presented_artifact(tmp_path: Path) ->
     thread_id = "file-analysis-smoke"
 
     class ScriptedFileAnalysisAgent:
-        def stream(self, state, *, config, context, stream_mode):
+        async def astream(self, state, *, config, context, stream_mode):
             del config, stream_mode
             assert context is not None
             base_dir = Path(context["thread_base_dir"])

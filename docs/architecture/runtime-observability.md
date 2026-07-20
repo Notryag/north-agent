@@ -50,9 +50,8 @@ context, or unrestricted tool output to a user-facing stream.
 `invoke_agent_once(..., event_sink=...)` appends a `RuntimeJournal` to existing runnable
 callbacks. With no sink, invocation behavior is unchanged.
 
-`stream_agent_once(..., stream_sink=...)` uses the Agent's canonical `astream` path and
-normalizes requested `values`, `messages`, or `custom` chunks into `RuntimeStreamEvent`.
-It preserves an optional subgraph namespace and returns the latest serialized `values`
-state when streaming ends. North does not persist, authorize, fan out, or render those
-chunks; the host owns those responsibilities. An Agent without `astream` falls back to
-one-shot invocation and emits one `values` event.
+`RunExecutor.execute(...)` is the only production owner of the Agent's canonical
+`astream` loop. It normalizes graph chunks and publishes selected modes directly to an
+asynchronous `StreamBridge`. Hosts use lifecycle hooks to durably settle product state
+before the executor publishes the end sentinel. `RuntimeJournal` remains the separate
+audit and usage boundary.
