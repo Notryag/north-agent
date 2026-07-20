@@ -9,9 +9,12 @@ from .runtime import (
     RuntimeEvent,
     RuntimeEventSink,
     RuntimeJournal,
+    RuntimeStreamEvent,
+    RuntimeStreamSink,
     RuntimeUsageAccumulator,
     TokenUsage,
     invoke_agent_once,
+    stream_agent_once,
     normalize_token_usage,
 )
 
@@ -26,11 +29,14 @@ __all__ = [
     "RuntimeEvent",
     "RuntimeEventSink",
     "RuntimeJournal",
+    "RuntimeStreamEvent",
+    "RuntimeStreamSink",
     "RuntimeUsageAccumulator",
     "StreamEvent",
     "TokenUsage",
     "build_agent",
     "invoke_agent_once",
+    "stream_agent_once",
     "make_checkpointer",
     "normalize_token_usage",
 ]
