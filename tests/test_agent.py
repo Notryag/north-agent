@@ -119,3 +119,33 @@ def test_build_agent_injects_skill_catalog_not_skill_body(monkeypatch, tmp_path)
     assert "<available_skills>" in captured["system_prompt"]
     assert "<location>skill://research/SKILL.md</location>" in captured["system_prompt"]
     assert "Detailed body content." not in captured["system_prompt"]
+
+
+def test_build_agent_combines_token_and_message_summarization_triggers(monkeypatch):
+    captured = {}
+
+    class StubModel:
+        pass
+
+    class StubSummarizationMiddleware:
+        def __init__(self, **kwargs):
+            captured.update(kwargs)
+
+    monkeypatch.setattr("north.agent.create_chat_model", lambda *args, **kwargs: StubModel())
+    monkeypatch.setattr("north.agent._supports_tool_binding", lambda model: True)
+    monkeypatch.setattr("north.agent.NorthSummarizationMiddleware", StubSummarizationMiddleware)
+    monkeypatch.setattr("north.agent.create_agent", lambda **kwargs: object())
+
+    build_agent(
+        AppConfig(
+            model_name="openai:gpt-test",
+            summarization_enabled=True,
+            summarization_trigger_tokens=1200,
+            summarization_trigger_messages=40,
+            summarization_keep_messages=12,
+        ),
+        tools=[],
+    )
+
+    assert captured["trigger"] == [("tokens", 1200), ("messages", 40)]
+    assert captured["keep"] == ("messages", 12)

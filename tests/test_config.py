@@ -16,6 +16,14 @@ def test_from_env_parses_skill_settings(monkeypatch, tmp_path):
     assert config.enabled_skills == ("research", "writer")
 
 
+def test_from_env_parses_optional_summarization_token_trigger(monkeypatch) -> None:
+    monkeypatch.setenv("APP_SUMMARIZATION_TRIGGER_TOKENS", "1200")
+
+    config = AppConfig.from_env()
+
+    assert config.summarization_trigger_tokens == 1200
+
+
 def test_from_env_uses_explicit_host_path_defaults(monkeypatch, tmp_path):
     monkeypatch.delenv("APP_SKILLS_DIR", raising=False)
     monkeypatch.delenv("APP_THREAD_BASE_DIR", raising=False)

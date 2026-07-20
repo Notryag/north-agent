@@ -202,3 +202,18 @@
   完成标准：
   文档定义受限 Python 闭环、Harness/宿主职责、安全不变量、暂不做事项，以及
   `upload://`、`workspace://`、`output://` 和 Artifact 的关系。
+
+### P5 宿主上下文效率
+
+- [x] T17. 支持 token-aware 上下文压缩触发器
+  目标：
+  让工具结果大小差异显著的宿主按近似 token 预算触发摘要，同时保留消息数硬上限。
+  关联文件：
+  `packages/harness/north/config.py`
+  `packages/harness/north/agent.py`
+  `tests/test_config.py`
+  `tests/test_agent.py`
+  `docs/architecture/thread-persistence.md`
+  完成标准：
+  宿主可同时配置 token 阈值和消息数阈值，North 使用 OR 语义触发 LangChain 安全压缩，
+  且未配置 token 阈值的既有宿主行为不变。

@@ -37,3 +37,9 @@ North exposes this through `AppConfig.summarization_*`, `NorthSummarizationMiddl
 `CompactionHook`. The middleware reuses LangChain's safe cutoff selection, writes the latest
 summary to the `summary_text` state channel, retains recent complete message groups, and invokes
 host hooks after summary generation. Hook failures are logged and do not fail the agent run.
+
+Hosts may set `summarization_trigger_tokens` together with
+`summarization_trigger_messages`. North applies OR semantics: reaching either the approximate
+message-token budget or the absolute message-count ceiling triggers compaction. The token counter
+includes tool calls and tool results, so large tool payloads are bounded without treating every
+message as the same size.

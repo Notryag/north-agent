@@ -88,9 +88,18 @@ def build_agent(
             if config.summarization_model_name
             else model
         )
+        trigger: tuple[str, int] | list[tuple[str, int]] = (
+            "messages",
+            config.summarization_trigger_messages,
+        )
+        if config.summarization_trigger_tokens is not None:
+            trigger = [
+                ("tokens", config.summarization_trigger_tokens),
+                trigger,
+            ]
         summarization_kwargs = {
             "model": summary_model,
-            "trigger": ("messages", config.summarization_trigger_messages),
+            "trigger": trigger,
             "keep": ("messages", config.summarization_keep_messages),
             "compaction_hooks": compaction_hooks,
         }
