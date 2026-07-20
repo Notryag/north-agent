@@ -125,7 +125,9 @@ def test_build_agent_combines_token_and_message_summarization_triggers(monkeypat
     captured = {}
 
     class StubModel:
-        pass
+        def with_config(self, **kwargs):
+            captured["summary_model_config"] = kwargs
+            return self
 
     class StubSummarizationMiddleware:
         def __init__(self, **kwargs):
@@ -149,3 +151,4 @@ def test_build_agent_combines_token_and_message_summarization_triggers(monkeypat
 
     assert captured["trigger"] == [("tokens", 1200), ("messages", 40)]
     assert captured["keep"] == ("messages", 12)
+    assert captured["summary_model_config"] == {"tags": ["middleware:summarization"]}

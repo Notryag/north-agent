@@ -42,4 +42,5 @@ Hosts may set `summarization_trigger_tokens` together with
 `summarization_trigger_messages`. North applies OR semantics: reaching either the approximate
 message-token budget or the absolute message-count ceiling triggers compaction. The token counter
 includes tool calls and tool results, so large tool payloads are bounded without treating every
-message as the same size.
+message as the same size. Summary model calls inherit the host runtime callback and carry the
+`middleware:summarization` tag so their latency and token usage remain visible as part of the Run.

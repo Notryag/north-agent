@@ -88,6 +88,7 @@ def build_agent(
             if config.summarization_model_name
             else model
         )
+        summary_model = summary_model.with_config(tags=["middleware:summarization"])
         trigger: tuple[str, int] | list[tuple[str, int]] = (
             "messages",
             config.summarization_trigger_messages,
