@@ -1,5 +1,11 @@
 # North Agent TODO Archive
 
+## 2026-07-22: Run-aware dual-threshold compaction
+
+- [x] Replace repeated threshold-only summaries with checkpointed per-Run normal and emergency
+  budgets, token-targeted retention, minimum-growth protection, atomic tool-call batches, and
+  separate history/context token telemetry.
+
 ## 2026-07-22: Preserve ToolMessage presentation artifacts
 
 - [x] Verify the canonical `RunExecutor` message stream preserves

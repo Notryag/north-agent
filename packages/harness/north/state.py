@@ -27,3 +27,7 @@ class ThreadState(AgentState):
     thread_data: NotRequired[dict[str, Any] | None]
     uploaded_files: NotRequired[list[dict] | None]
     summary_text: NotRequired[str | None]
+    compaction_run_id: NotRequired[str | None]
+    normal_compaction_done: NotRequired[bool]
+    emergency_compaction_count: NotRequired[int]
+    compaction_retained_tokens: NotRequired[int | None]

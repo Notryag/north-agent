@@ -121,7 +121,7 @@ def test_build_agent_injects_skill_catalog_not_skill_body(monkeypatch, tmp_path)
     assert "Detailed body content." not in captured["system_prompt"]
 
 
-def test_build_agent_combines_token_and_message_summarization_triggers(monkeypatch):
+def test_build_agent_configures_run_aware_summarization(monkeypatch):
     captured = {}
 
     class StubModel:
@@ -142,15 +142,23 @@ def test_build_agent_combines_token_and_message_summarization_triggers(monkeypat
         AppConfig(
             model_name="openai:gpt-test",
             summarization_enabled=True,
-            summarization_trigger_tokens=1200,
-            summarization_trigger_messages=40,
-            summarization_keep_messages=12,
+            summarization_normal_trigger_tokens=6000,
+            summarization_emergency_trigger_tokens=12000,
+            summarization_message_ceiling=60,
+            summarization_target_tokens=2000,
+            summarization_min_growth_tokens=3000,
+            summarization_max_emergency_compactions=2,
         ),
         tools=[],
     )
 
-    assert captured["trigger"] == [("tokens", 1200), ("messages", 40)]
-    assert captured["keep"] == ("messages", 12)
+    assert captured["normal_trigger_tokens"] == 6000
+    assert captured["emergency_trigger_tokens"] == 12000
+    assert captured["message_ceiling"] == 60
+    assert captured["target_tokens"] == 2000
+    assert captured["min_growth_tokens"] == 3000
+    assert captured["max_emergency_compactions"] == 2
+    assert captured["context_token_overhead"] > 0
     assert captured["summary_model_config"] == {"tags": ["middleware:summarization"]}
 
 

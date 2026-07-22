@@ -23,12 +23,18 @@ The default remains `memory` for tests and local clients. Production hosts shoul
 
 ## Context Compaction
 
-The target design adapts DeerFlow's summarization middleware:
+North applies a Run-aware dual-threshold policy:
 
-1. Trigger on a configurable message, token, or context-fraction threshold.
-2. Preserve recent complete turns and replace older runtime messages with `summary_text`.
-3. Run a pre-compaction hook so the host can archive messages removed from graph state.
-4. Keep product-specific pending actions in host-owned structured state, never only in a
+1. On the first model call of a Run, compact history above 6,000 approximate tokens or the
+   60-message safety ceiling. This normal path runs at most once in that Run.
+2. During the Run, compact only when the complete estimated model context exceeds 12,000 tokens.
+   The estimate combines message history with the system prompt and initially bound tool schemas.
+3. Keep approximately 2,000 tokens of recent history. The safe cutoff never separates an AI
+   tool-call batch from its corresponding ToolMessages.
+4. Require at least 3,000 newly accumulated history tokens before another compaction and allow at
+   most two emergency compactions per Run.
+5. Run a pre-compaction hook so the host can archive messages removed from graph state.
+6. Keep product-specific pending actions in host-owned structured state, never only in a
    natural-language summary.
 
 Compaction changes model context, not the user's visible conversation history.
@@ -37,13 +43,18 @@ the live runtime stream, but the host must persist visible history independently
 before a later compaction removes old runtime artifacts.
 
 North exposes this through `AppConfig.summarization_*`, `NorthSummarizationMiddleware`, and
-`CompactionHook`. The middleware reuses LangChain's safe cutoff selection, writes the latest
-summary to the `summary_text` state channel, retains recent complete message groups, and invokes
-host hooks after summary generation. Hook failures are logged and do not fail the agent run.
+`CompactionHook`. Run counters live in checkpointed `ThreadState`, not mutable middleware fields.
+Hosts must pass a stable `run_id` in runtime context; unscoped direct invocations are treated as one
+Run and cannot provide per-Run guarantees. The latest summary is written to `summary_text`, and
+hook failures are logged without failing the Agent Run.
 
-Hosts may set `summarization_trigger_tokens` together with
-`summarization_trigger_messages`. North applies OR semantics: reaching either the approximate
-message-token budget or the absolute message-count ceiling triggers compaction. The token counter
-includes tool calls and tool results, so large tool payloads are bounded without treating every
-message as the same size. Summary model calls inherit the host runtime callback and carry the
-`middleware:summarization` tag so their latency and token usage remain visible as part of the Run.
+`history_tokens` is the approximate serialized message history. `context_tokens` adds the fixed
+system prompt and initially bound tool schemas calculated during Agent assembly. These metrics are
+reported separately on `CompactionEvent`; neither name may be used for the other. Summary model
+calls inherit runtime callbacks and carry the `middleware:summarization` tag, so usage remains
+auditable even when the host hides internal lifecycle events from end users.
+
+North treats host-defined compact ToolMessage content as opaque. It does not rewrite business
+receipts. JSON-compatible presentation artifacts remain attached while their ToolMessage is
+retained and may disappear only when that complete message group is compacted; the host is
+responsible for durable UI projection before then.

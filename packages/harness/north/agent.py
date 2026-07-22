@@ -5,6 +5,8 @@ from collections.abc import Sequence
 from langchain.agents import create_agent
 from langchain.chat_models import init_chat_model
 from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_core.messages import SystemMessage
+from langchain_core.messages.utils import count_tokens_approximately
 
 from .config import AppConfig
 from .agents.middlewares import CompactionHook, NorthSummarizationMiddleware
@@ -75,6 +77,7 @@ def build_agent(
     resolved_tools = tools if tools is not None else resolve_tools(config, skills=resolved_skills)
     if not _supports_tool_binding(model):
         resolved_tools = []
+    system_prompt = resolve_system_prompt(config, skills=resolved_skills)
 
     resolved_middlewares = list(
         middlewares if middlewares is not None else resolve_middlewares(config)
@@ -92,19 +95,20 @@ def build_agent(
             else model
         )
         summary_model = summary_model.with_config(tags=["middleware:summarization"])
-        trigger: tuple[str, int] | list[tuple[str, int]] = (
-            "messages",
-            config.summarization_trigger_messages,
-        )
-        if config.summarization_trigger_tokens is not None:
-            trigger = [
-                ("tokens", config.summarization_trigger_tokens),
-                trigger,
-            ]
         summarization_kwargs = {
             "model": summary_model,
-            "trigger": trigger,
-            "keep": ("messages", config.summarization_keep_messages),
+            "normal_trigger_tokens": config.summarization_normal_trigger_tokens,
+            "emergency_trigger_tokens": config.summarization_emergency_trigger_tokens,
+            "message_ceiling": config.summarization_message_ceiling,
+            "target_tokens": config.summarization_target_tokens,
+            "min_growth_tokens": config.summarization_min_growth_tokens,
+            "max_emergency_compactions": (
+                config.summarization_max_emergency_compactions
+            ),
+            "context_token_overhead": count_tokens_approximately(
+                [SystemMessage(content=system_prompt)],
+                tools=resolved_tools,
+            ),
             "compaction_hooks": compaction_hooks,
         }
         if config.summarization_summary_prompt is not None:
@@ -115,7 +119,7 @@ def build_agent(
         model=model,
         tools=resolved_tools,
         middleware=resolved_middlewares,
-        system_prompt=resolve_system_prompt(config, skills=resolved_skills),
+        system_prompt=system_prompt,
         state_schema=get_state_schema(),
         checkpointer=checkpointer if checkpointer is not None else resolve_checkpointer(config),
     )

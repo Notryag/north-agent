@@ -16,12 +16,22 @@ def test_from_env_parses_skill_settings(monkeypatch, tmp_path):
     assert config.enabled_skills == ("research", "writer")
 
 
-def test_from_env_parses_optional_summarization_token_trigger(monkeypatch) -> None:
-    monkeypatch.setenv("APP_SUMMARIZATION_TRIGGER_TOKENS", "1200")
+def test_from_env_parses_run_aware_summarization_settings(monkeypatch) -> None:
+    monkeypatch.setenv("APP_SUMMARIZATION_NORMAL_TRIGGER_TOKENS", "6000")
+    monkeypatch.setenv("APP_SUMMARIZATION_EMERGENCY_TRIGGER_TOKENS", "12000")
+    monkeypatch.setenv("APP_SUMMARIZATION_MESSAGE_CEILING", "60")
+    monkeypatch.setenv("APP_SUMMARIZATION_TARGET_TOKENS", "2000")
+    monkeypatch.setenv("APP_SUMMARIZATION_MIN_GROWTH_TOKENS", "3000")
+    monkeypatch.setenv("APP_SUMMARIZATION_MAX_EMERGENCY_COMPACTIONS", "2")
 
     config = AppConfig.from_env()
 
-    assert config.summarization_trigger_tokens == 1200
+    assert config.summarization_normal_trigger_tokens == 6000
+    assert config.summarization_emergency_trigger_tokens == 12000
+    assert config.summarization_message_ceiling == 60
+    assert config.summarization_target_tokens == 2000
+    assert config.summarization_min_growth_tokens == 3000
+    assert config.summarization_max_emergency_compactions == 2
 
 
 def test_from_env_uses_explicit_host_path_defaults(monkeypatch, tmp_path):

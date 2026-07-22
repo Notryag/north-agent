@@ -27,13 +27,6 @@ def _get_int(name: str, default: int) -> int:
     return int(value)
 
 
-def _get_optional_int(name: str) -> int | None:
-    value = os.getenv(name)
-    if value is None or not value.strip():
-        return None
-    return int(value)
-
-
 def _get_csv(name: str) -> tuple[str, ...]:
     value = os.getenv(name)
     if value is None:
@@ -60,9 +53,12 @@ class AppConfig:
     summarization_enabled: bool = False
     summarization_model_name: str | None = None
     summarization_summary_prompt: str | None = None
-    summarization_trigger_tokens: int | None = None
-    summarization_trigger_messages: int = 40
-    summarization_keep_messages: int = 12
+    summarization_normal_trigger_tokens: int = 6000
+    summarization_emergency_trigger_tokens: int = 12000
+    summarization_message_ceiling: int = 60
+    summarization_target_tokens: int = 2000
+    summarization_min_growth_tokens: int = 3000
+    summarization_max_emergency_compactions: int = 2
 
     @classmethod
     def from_env(
@@ -91,11 +87,24 @@ class AppConfig:
             summarization_enabled=_get_bool("APP_SUMMARIZATION_ENABLED", False),
             summarization_model_name=os.getenv("APP_SUMMARIZATION_MODEL_NAME"),
             summarization_summary_prompt=os.getenv("APP_SUMMARIZATION_SUMMARY_PROMPT"),
-            summarization_trigger_tokens=_get_optional_int(
-                "APP_SUMMARIZATION_TRIGGER_TOKENS"
+            summarization_normal_trigger_tokens=_get_int(
+                "APP_SUMMARIZATION_NORMAL_TRIGGER_TOKENS", 6000
             ),
-            summarization_trigger_messages=_get_int("APP_SUMMARIZATION_TRIGGER_MESSAGES", 40),
-            summarization_keep_messages=_get_int("APP_SUMMARIZATION_KEEP_MESSAGES", 12),
+            summarization_emergency_trigger_tokens=_get_int(
+                "APP_SUMMARIZATION_EMERGENCY_TRIGGER_TOKENS", 12000
+            ),
+            summarization_message_ceiling=_get_int(
+                "APP_SUMMARIZATION_MESSAGE_CEILING", 60
+            ),
+            summarization_target_tokens=_get_int(
+                "APP_SUMMARIZATION_TARGET_TOKENS", 2000
+            ),
+            summarization_min_growth_tokens=_get_int(
+                "APP_SUMMARIZATION_MIN_GROWTH_TOKENS", 3000
+            ),
+            summarization_max_emergency_compactions=_get_int(
+                "APP_SUMMARIZATION_MAX_EMERGENCY_COMPACTIONS", 2
+            ),
         )
 
     def validate(self) -> None:
