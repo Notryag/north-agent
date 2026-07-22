@@ -32,6 +32,9 @@ The target design adapts DeerFlow's summarization middleware:
    natural-language summary.
 
 Compaction changes model context, not the user's visible conversation history.
+JSON-compatible ToolMessage artifacts may carry host presentation data through
+the live runtime stream, but the host must persist visible history independently
+before a later compaction removes old runtime artifacts.
 
 North exposes this through `AppConfig.summarization_*`, `NorthSummarizationMiddleware`, and
 `CompactionHook`. The middleware reuses LangChain's safe cutoff selection, writes the latest

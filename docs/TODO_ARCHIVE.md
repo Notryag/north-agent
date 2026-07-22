@@ -1,5 +1,11 @@
 # North Agent TODO Archive
 
+## 2026-07-22: Preserve ToolMessage presentation artifacts
+
+- [x] Verify the canonical `RunExecutor` message stream preserves
+  JSON-compatible `ToolMessage.artifact` independently from compact model-visible
+  content, and document that hosts own validation and durable projection.
+
 这份文件记录已经完成的 TODO。当前可执行任务请看 [TODO](./TODO.md)。
 
 ## Completed

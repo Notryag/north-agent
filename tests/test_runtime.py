@@ -1,5 +1,7 @@
 import asyncio
 
+from langchain_core.messages import ToolMessage
+
 from north.runtime import (
     END_SENTINEL,
     MemoryStreamBridge,
@@ -114,6 +116,51 @@ async def _assert_run_executor_success():
     ]
     assert observed == [("completed", 1)]
     assert events[1].namespace == ("subgraph:agent",)
+
+
+def test_run_executor_preserves_tool_message_artifact_in_canonical_stream():
+    asyncio.run(_assert_tool_message_artifact_stream())
+
+
+async def _assert_tool_message_artifact_stream():
+    artifact = {
+        "tool_call_id": "tool-1",
+        "operation": "calendar_entry_created",
+        "item": {"kind": "calendar", "value": {"id": "calendar-1", "title": "跳舞"}},
+    }
+
+    class StubAgent:
+        async def astream(self, graph_input, config=None, context=None, stream_mode=None):
+            del graph_input, config, context
+            assert stream_mode == ["values", "messages"]
+            yield (
+                "messages",
+                (
+                    ToolMessage(
+                        content='{"type":"calendar_entry_created","id":"calendar-1"}',
+                        artifact=artifact,
+                        name="create_calendar_entry",
+                        tool_call_id="tool-1",
+                    ),
+                    {"langgraph_node": "tools"},
+                ),
+            )
+            yield ("values", {"messages": []})
+
+    bridge = MemoryStreamBridge()
+    record = RunManager().create(thread_id="thread-1", run_id="run-artifact")
+    await RunExecutor(bridge).execute(
+        record,
+        agent_factory=StubAgent,
+        graph_input={},
+    )
+    events = [event async for event in bridge.subscribe("run-artifact")]
+
+    message_event = next(event for event in events if event.event == "messages-tuple")
+    assert message_event.data[0]["content"] == (
+        '{"type":"calendar_entry_created","id":"calendar-1"}'
+    )
+    assert message_event.data[0]["artifact"] == artifact
 
 
 def test_run_executor_persists_error_before_error_event_and_end():

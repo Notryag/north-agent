@@ -45,6 +45,19 @@ show.
 Never emit credentials, system prompts, database connection strings, hidden tenant
 context, or unrestricted tool output to a user-facing stream.
 
+## Tool Message Artifacts
+
+North's canonical `messages` stream preserves JSON-compatible
+`ToolMessage.artifact` separately from model-visible `ToolMessage.content`.
+Host products may use this to carry a complete validated presentation snapshot
+while keeping model context compact. North transports the artifact without
+interpreting product fields; the host owns validation, durable projection,
+redaction, and UI semantics.
+
+Checkpoint artifacts are runtime transport/state, not product conversation
+history. A host must durably project an artifact before later compaction removes
+it. Artifact preservation does not authorize North to include it in model input.
+
 ## Invocation
 
 `invoke_agent_once(..., event_sink=...)` appends a `RuntimeJournal` to existing runnable
