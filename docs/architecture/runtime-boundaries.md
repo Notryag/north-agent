@@ -101,6 +101,7 @@ class ThreadState(AgentState):
     artifacts: list[str]
     thread_data: dict | None
     uploaded_files: list[dict] | None
+    clarification_request: dict | None
 ```
 
 其中：
@@ -124,6 +125,11 @@ class ThreadState(AgentState):
 
 - `title`
   当前不是主线能力，不作为普通工具输出目标。
+
+- `clarification_request`
+  由 North clarification middleware 写入的一次性结构化请求。`RunExecutor` 在完成时将其
+  验证并投影为 `RuntimeExecutionResult.clarification`；宿主负责映射到自己的持久化
+  Interaction。它不是产品层状态权威，用户回复进入下一次执行时会被清除。
 
 ### 关于 `outputs/`
 

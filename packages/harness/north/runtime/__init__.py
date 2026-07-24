@@ -21,6 +21,7 @@ from .events import (
     normalize_token_usage,
 )
 from .service import RuntimeService
+from .results import ClarificationRequest, RuntimeExecutionResult
 from .stream_bridge import (
     END_SENTINEL,
     HEARTBEAT_SENTINEL,
@@ -100,6 +101,8 @@ __all__ = [
     "RunExecutor",
     "RunLifecycleHooks",
     "RuntimeService",
+    "ClarificationRequest",
+    "RuntimeExecutionResult",
     "RuntimeEvent",
     "RuntimeEventSink",
     "RuntimeJournal",

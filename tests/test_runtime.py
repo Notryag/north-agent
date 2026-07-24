@@ -9,6 +9,7 @@ from north.runtime import (
     RunExecutor,
     RunLifecycleHooks,
     RunManager,
+    RuntimeExecutionResult,
     RuntimeService,
 )
 from north.runtime.runs import RunStatus
@@ -95,8 +96,8 @@ async def _assert_run_executor_success():
     observed = []
 
     async def completed(result):
-        observed.append(("completed", result["value"]))
-        await bridge.publish("run-1", "product_completed", result)
+        observed.append(("completed", result.values["value"]))
+        await bridge.publish("run-1", "product_completed", result.values)
 
     result = await RunExecutor(bridge, manager).execute(
         record,
@@ -106,7 +107,9 @@ async def _assert_run_executor_success():
     )
     events = [event async for event in bridge.subscribe("run-1")]
 
-    assert result["value"] == 1
+    assert isinstance(result, RuntimeExecutionResult)
+    assert result.values["value"] == 1
+    assert result.clarification is None
     assert manager.get("run-1").status == RunStatus.success
     assert [event.event for event in events] == [
         "metadata",
@@ -116,6 +119,45 @@ async def _assert_run_executor_success():
     ]
     assert observed == [("completed", 1)]
     assert events[1].namespace == ("subgraph:agent",)
+
+
+def test_run_executor_emits_typed_clarification_result():
+    asyncio.run(_assert_typed_clarification_result())
+
+
+async def _assert_typed_clarification_result():
+    class StubAgent:
+        async def astream(self, graph_input, config=None, context=None, stream_mode=None):
+            del graph_input, config, context, stream_mode
+            yield (
+                "values",
+                {
+                    "messages": [],
+                    "clarification_request": {
+                        "question": "When should it start?",
+                        "response_kind": "single_choice",
+                        "options": ["09:00", "14:00"],
+                    },
+                },
+            )
+
+    observed = []
+
+    async def completed(result):
+        observed.append(result)
+
+    result = await RunExecutor(MemoryStreamBridge()).execute(
+        RunManager().create(thread_id="thread-1", run_id="run-clarification"),
+        agent_factory=StubAgent,
+        graph_input={},
+        lifecycle_hooks=RunLifecycleHooks(on_completed=completed),
+    )
+
+    assert result.clarification is not None
+    assert result.clarification.question == "When should it start?"
+    assert result.clarification.response_kind == "single_choice"
+    assert result.clarification.options == ("09:00", "14:00")
+    assert observed == [result]
 
 
 def test_run_executor_preserves_tool_message_artifact_in_canonical_stream():

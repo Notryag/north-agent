@@ -10,6 +10,9 @@
 - `invoke_agent_once`：执行一次产品无关的 Agent 调用
 - `RunExecutor`：唯一的生产 `agent.astream` 执行循环，直接向 `StreamBridge` 发布标准
   graph chunks，并在 end sentinel 前等待宿主生命周期钩子完成
+- `RuntimeExecutionResult`：Run 的类型化完成结果，保留原始 graph values，并显式携带可选
+  `ClarificationRequest`；宿主不应反向解析 `thread_data`
+- `ClarificationRequest`：产品无关的澄清问题、响应类型和可选项契约
 - `StreamBridge` / `MemoryStreamBridge` / `RedisStreamBridge`：异步发布、可回放订阅、
   heartbeat、end 和清理语义
 - `RuntimeStreamEvent`：产品无关的标准化 graph chunk

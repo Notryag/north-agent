@@ -7,6 +7,7 @@ from typing import Any
 
 from .events import RuntimeEventSink
 from .invoke import RuntimeStreamEvent, normalize_stream_chunk, with_runtime_journal
+from .results import RuntimeExecutionResult, clarification_from_values
 from .runs import RunManager, RunRecord, RunStatus
 from .stream_bridge import StreamBridge
 
@@ -43,7 +44,7 @@ class RunExecutor:
         lifecycle_hooks: RunLifecycleHooks | None = None,
         stream_modes: Sequence[str] = ("values", "messages"),
         publish_modes: Sequence[str] = ("messages",),
-    ) -> Any:
+    ) -> RuntimeExecutionResult:
         requested_modes = tuple(stream_modes)
         published_modes = frozenset(publish_modes)
         if not requested_modes:
@@ -89,10 +90,14 @@ class RunExecutor:
 
             if record.abort_event.is_set():
                 raise asyncio.CancelledError
+            result = RuntimeExecutionResult(
+                values=latest_values,
+                clarification=clarification_from_values(latest_values),
+            )
             if hooks.on_completed is not None:
-                await hooks.on_completed(latest_values)
+                await hooks.on_completed(result)
             self._set_status(record.run_id, RunStatus.success)
-            return latest_values
+            return result
         except asyncio.CancelledError:
             self._set_status(record.run_id, RunStatus.interrupted)
             if hooks.on_interrupted is not None:

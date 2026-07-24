@@ -6,6 +6,7 @@ THREAD_STATE_UPDATE_GUIDE: Final[dict[str, str]] = {
     "title": "Reserved for runtime-level metadata. Tools should not write this field in the current stage.",
     "artifacts": "Thread-scoped artifact paths. Tools may append generated files; runtime reads and exposes them through chat/stream.",
     "thread_data": "Runtime-owned scratch metadata for future workspace/file flows. General tools should treat it as read-only unless a dedicated contract is introduced.",
+    "clarification_request": "Runtime-owned one-run interaction signal. Only the clarification middleware should update it.",
     "uploaded_files": "Runtime-owned records for user-provided files. Tools may consume these records but should not mutate them directly.",
 }
 
@@ -25,6 +26,7 @@ class ThreadState(AgentState):
     title: NotRequired[str | None]
     artifacts: NotRequired[list[str]]
     thread_data: NotRequired[dict[str, Any] | None]
+    clarification_request: NotRequired[dict[str, Any] | None]
     uploaded_files: NotRequired[list[dict] | None]
     summary_text: NotRequired[str | None]
     compaction_run_id: NotRequired[str | None]
